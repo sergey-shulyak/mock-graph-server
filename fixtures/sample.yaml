@@ -1,0 +1,123 @@
+# Sample fixture for the mock Graph server.
+# Covers the cases in the team's RBAC test matrix: direct access, group access,
+# nested groups, inheritance, broken inheritance, no access, and a revocation target.
+
+tenant:
+  domain: contoso-mock.onmicrosoft.com
+
+users:
+  - id: alice          # backend engineer
+    displayName: Alice Backend
+    upn: alice@contoso-mock.onmicrosoft.com
+  - id: bob            # frontend engineer
+    displayName: Bob Frontend
+    upn: bob@contoso-mock.onmicrosoft.com
+  - id: carol          # HR, no engineering access
+    displayName: Carol HR
+    upn: carol@contoso-mock.onmicrosoft.com
+  - id: dave           # support / SME, handles escalations
+    displayName: Dave Support
+    upn: dave@contoso-mock.onmicrosoft.com
+  - id: erin           # contractor, single-document access only
+    displayName: Erin Contractor
+    upn: erin@contoso-mock.onmicrosoft.com
+
+groups:
+  - id: all-staff
+    displayName: All Staff
+    members: [group:engineering, user:carol, user:dave]
+  - id: engineering
+    displayName: Engineering
+    members: [group:eng-backend, group:eng-frontend]   # nested groups
+  - id: eng-backend
+    displayName: Engineering - Backend
+    members: [user:alice]
+  - id: eng-frontend
+    displayName: Engineering - Frontend
+    members: [user:bob]
+  - id: hr
+    displayName: HR
+    members: [user:carol]
+  - id: support
+    displayName: Support
+    members: [user:dave]
+
+sites:
+  - id: kb
+    displayName: Knowledge Base
+    drives:
+      - id: kb-docs
+        name: Documents
+        items:
+          - path: /General
+            permissions:
+              - { principal: group:all-staff, role: read }
+          - path: /General/vacation-policy.md
+            content: |
+              # Vacation policy
+              Employees get 24 working days of paid vacation per year.
+              Requests go through the HR portal at least 2 weeks in advance.
+          - path: /General/office-wifi.md
+            content: |
+              # Office Wi-Fi
+              Network: ContosoStaff. Password rotates monthly; ask Support.
+
+          - path: /Engineering
+            permissions:
+              - { principal: group:engineering, role: read }
+          - path: /Engineering/local-dev-setup.md
+            content: |
+              # Local development setup
+              Install Docker Desktop with the WSL2 backend on Windows.
+              Run `docker compose up` from the infra repo.
+          - path: /Engineering/Backend
+            breakInheritance: true          # frontend engineers must not see backend docs
+            permissions:
+              - { principal: group:eng-backend, role: write }
+          - path: /Engineering/Backend/db-migrations.md
+            content: |
+              # Database migrations
+              We use Flyway. Never edit an applied migration; add a new one.
+          - path: /Engineering/Backend/prod-access.md
+            breakInheritance: true          # only explicit permissions apply
+            permissions:
+              - { principal: user:alice, role: read }
+            content: |
+              # Production access
+              Request prod DB access via the on-call lead. Access expires after 8 hours.
+
+          - path: /HR
+            breakInheritance: true
+            permissions:
+              - { principal: group:hr, role: write }
+          - path: /HR/salary-bands.md
+            content: |
+              # Salary bands
+              Confidential. Bands are reviewed every January.
+
+          - path: /Support
+            permissions:
+              - { principal: group:support, role: write }
+          - path: /Support/escalation-runbook.md
+            content: |
+              # Escalation runbook
+              Tickets from the copilot land in the Support queue.
+              Target first response: 4 business hours.
+
+          - path: /Shared/contractor-onboarding.md
+            breakInheritance: true
+            permissions:
+              - { principal: user:erin, role: read }
+              - { principal: group:engineering, role: read }
+            content: |
+              # Contractor onboarding
+              Contractors get a temporary account valid for 90 days.
+
+# Expected visibility (used by contract tests):
+#   alice: General/*, Engineering/*, Engineering/Backend/* (incl. prod-access), Shared/contractor-onboarding
+#   bob:   General/*, Engineering/local-dev-setup, Shared/contractor-onboarding — NOT Backend/*
+#   carol: General/*, HR/* — NOT Engineering/*
+#   dave:  General/*, Support/*
+#   erin:  Shared/contractor-onboarding only
+# Revocation test: DELETE /_admin/permissions {itemPath: /Shared/contractor-onboarding.md, principal: user:erin}
+#   -> erin sees nothing; drive delta reports a sharing change on that item.
