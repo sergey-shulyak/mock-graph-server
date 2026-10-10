@@ -112,6 +112,14 @@ Token from another epoch (after `/_admin/reset` or restart) -> `410 Gone` `resyn
 Principals/members are `user:<id>` / `group:<id>`. Group-membership cycles are rejected with 400.
 `GET /_admin/state` emits YAML in the fixture format, so it can be saved and reloaded.
 
+## Implementation notes (M1)
+
+- Fixture path: a relative `FixturePath` is resolved against the content root, then each parent directory
+  (`FixtureLoader.ResolvePath`); in Docker the content root is `/app`, so `/app/fixtures` is found directly.
+- `$select` always keeps `id` and all `@` annotations. Unmatched `/v1.0` GET -> 404 `Request_ResourceNotFound`;
+  non-GET -> 405 `BadRequest`. `/me/memberOf` and `/me/transitiveMemberOf` are also served.
+- Domain records (`State/Records.cs`) already hold sites, drives and items; no endpoints use them yet.
+
 ## Fixture note
 
 `fixtures/sample.yaml` had `/Engineering/Backend` inheriting `group:engineering` from `/Engineering`,
