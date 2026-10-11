@@ -6,6 +6,7 @@ using MockGraph.Server.State;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MockGraphOptions>(builder.Configuration.GetSection(MockGraphOptions.SectionName));
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<GraphStore>();
 
 var app = builder.Build();
@@ -16,6 +17,8 @@ app.UseMiddleware<AuthMiddleware>();
 app.MapDirectoryEndpoints();
 app.MapSitesEndpoints();
 app.MapDriveEndpoints();
+app.MapDeltaEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();
 

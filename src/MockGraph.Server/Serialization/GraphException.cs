@@ -8,6 +8,8 @@ public sealed class GraphException(int statusCode, string code, string message) 
 
     public static GraphException BadRequest(string message) => new(StatusCodes.Status400BadRequest, "BadRequest", message);
 
+    public static GraphException NotFound(string code, string message) => new(StatusCodes.Status404NotFound, code, message);
+
     public static GraphException Unauthorized(string message) => new(StatusCodes.Status401Unauthorized, "InvalidAuthenticationToken", message);
 
     public static GraphException ItemNotFound() => new(

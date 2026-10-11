@@ -33,6 +33,9 @@ public sealed class FileMapper
     public static FileMapper For(HttpContext ctx, GraphStore store) =>
         new(store.Model, ctx.GetCaller(), Paging.BaseUrl(ctx.Request), store.Epoch);
 
+    public static FileMapper For(HttpContext ctx, GraphStore store, GraphModel model) =>
+        new(model, ctx.GetCaller(), Paging.BaseUrl(ctx.Request), store.Epoch);
+
     public Site ToSite(SiteRecord site) => new()
     {
         Id = site.Id,

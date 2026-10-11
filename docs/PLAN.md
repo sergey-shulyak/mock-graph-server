@@ -137,6 +137,33 @@ Principals/members are `user:<id>` / `group:<id>`. Group-membership cycles are r
   `{groupKey}@{tenantDomain}` for groups).
 - Fixture: added `/General/floor-plan.png` (`source:` binary under `fixtures/files/`); visibility table unchanged.
 
+## Implementation notes (M3)
+
+- **History, not replay.** `GraphStore` keeps the append-only `ChangeEntry` log plus one immutable `GraphModel` snapshot per
+  change (`GraphModel.Sequence`). Delta diffs `ModelAt(since)` against `ModelAt(target)`, so user-context visibility
+  (grant, revoke, group membership change) is evaluated on both sides: unreadable-now-but-readable-before -> `deleted`,
+  the reverse -> upsert. Reset clears log and history and starts a new epoch.
+- **Tokens** (`OData/DeltaTokens.cs`): base64url JSON `{K kind, E epoch, S synced-seq, T pinned-seq, O offset, I initial, P paging, D drive, Sc scope}`.
+  An initial enumeration is pinned at T and read from `ModelAt(T)`, so pages stay consistent while admin mutations happen.
+  Wrong epoch (or a sequence in the future) -> `410 resyncRequired`; malformed/foreign-drive token -> 400.
+  Links are `.../delta?token=<t>` for both nextLink and deltaLink; `$skiptoken`/`$deltatoken` for groups.
+- **Routes served:** `/drives/{id}/root/delta`, `/items/{id}/delta` (the SDK uses `items/root/delta()`), the `()` and
+  `(token='x')` function forms, plus `?token=x` / `?token=latest`. Folder-scoped delta only reports that subtree.
+- **Verified against the docs:** annotation is `"@microsoft.graph.sharedChanged": "True"` (string). The header is
+  `Prefer: deltashowsharingchanges` (docs say it is combined with `deltashowremovedasdeleted, deltatraversepermissiongaps`;
+  we only look for `deltashowsharingchanges`). The docs describe no `Preference-Applied` echo, so none is sent.
+  Without the header, sharing-only changes are not reported (real Graph reports them); an item that becomes visible to a
+  user through a permission/group change is an upsert and carries sharedChanged only when the header is sent.
+  Deleted items are `{id, deleted:{state:"deleted"}, parentReference:{driveId,id}}` (no name, as SharePoint). The 410 has no `Location` header.
+  `deltaExcludeParent`, `hierarchicalsharing` and timestamp tokens are not implemented. Incremental pages do not include parent folders.
+- **Groups delta** follows the docs: `members@delta` (direct members, typed, `@removed:{reason:"deleted"}`) is present unless
+  `$select` is given without `members`; initial sync lists all members, incremental lists the net added/removed members
+  of groups whose membership changed. `$deltatoken=latest` is supported; `$filter` is rejected.
+- **Admin API:** errors reuse the Graph error body (`{error:{code,message,innerError}}`) with 400/404. Group cycles -> 400. Re-granting or
+  re-adding the same thing is a no-op (`changed:false`, no log entry). Grant of a different role for the same principal replaces it;
+  revoke without `role` removes all roles of that principal. `/_admin/state` is YAML in the fixture format (binary or
+  whitespace-fragile files as `contentBase64`, accepted by the loader); runtime timestamps and eTag versions are not included.
+
 ## Fixture note
 
 `fixtures/sample.yaml` had `/Engineering/Backend` inheriting `group:engineering` from `/Engineering`,

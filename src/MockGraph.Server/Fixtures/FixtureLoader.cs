@@ -117,7 +117,7 @@ public static class FixtureLoader
                     : throw new InvalidDataException($"Item '{path}' grants unknown principal '{p.Principal}'.");
             }).ToList();
 
-            var isFolder = item.Content is null && item.Source is null;
+            var isFolder = item.Content is null && item.Source is null && item.ContentBase64 is null;
             var name = path[(path.LastIndexOf('/') + 1)..];
             byPath[path] = new ItemRecord(
                 drive.Key,
@@ -153,13 +153,18 @@ public static class FixtureLoader
             return System.Text.Encoding.UTF8.GetBytes(item.Content);
         }
 
+        if (item.ContentBase64 is not null)
+        {
+            return Convert.FromBase64String(item.ContentBase64);
+        }
+
         var candidates = new[] { Path.Combine(fixtureDir, item.Source!), Path.Combine(fixtureDir, "files", item.Source!) };
         var file = candidates.FirstOrDefault(File.Exists)
             ?? throw new FileNotFoundException($"Fixture source file '{item.Source}' for '{item.Path}' not found under '{fixtureDir}'.");
         return File.ReadAllBytes(file);
     }
 
-    private static string ContentTypeFor(string name)
+    public static string ContentTypeFor(string name)
     {
         if (ContentTypes.TryGetContentType(name, out var type))
         {
@@ -169,13 +174,13 @@ public static class FixtureLoader
         return name.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ? "text/markdown" : "application/octet-stream";
     }
 
-    private static string NormalizePath(string path)
+    public static string NormalizePath(string path)
     {
         var trimmed = path.Trim().Trim('/');
         return trimmed.Length == 0 ? throw new InvalidDataException("Item path must not be empty.") : "/" + trimmed;
     }
 
-    private static PermissionRole ParseRole(string role) => role.ToLowerInvariant() switch
+    public static PermissionRole ParseRole(string role) => role.ToLowerInvariant() switch
     {
         "read" => PermissionRole.Read,
         "write" => PermissionRole.Write,

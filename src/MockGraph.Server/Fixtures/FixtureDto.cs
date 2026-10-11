@@ -63,6 +63,9 @@ public sealed class ItemDto
     public string? Content { get; set; }
 
     public string? Source { get; set; }
+
+    /// <summary>Binary content inline as base64 (emitted by GET /_admin/state for non-text files).</summary>
+    public string? ContentBase64 { get; set; }
 }
 
 public sealed class PermissionDto

@@ -13,7 +13,7 @@ public sealed record ODataQuery(int? Top, string? SelectRaw, string? SkipToken)
         ? null
         : SelectRaw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-    public static ODataQuery Parse(HttpRequest request, bool collection, MockGraphOptions options)
+    public static ODataQuery Parse(HttpRequest request, bool collection, MockGraphOptions options, params string[] extraAllowed)
     {
         int? top = null;
         string? select = null;
@@ -36,7 +36,7 @@ public sealed record ODataQuery(int? Top, string? SelectRaw, string? SkipToken)
             {
                 skipToken = value;
             }
-            else
+            else if (!extraAllowed.Contains(key, StringComparer.OrdinalIgnoreCase))
             {
                 throw GraphException.BadRequest($"Query option '{key}' is not supported by this endpoint.");
             }

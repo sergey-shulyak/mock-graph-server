@@ -61,7 +61,7 @@ public sealed record ItemRecord(
     byte[]? Content,
     string? ContentType)
 {
-    /// <summary>Last modification time; seeded items use <see cref="ItemPaths.SeedTime"/>. Admin mutations (M3) set it via `with`.</summary>
+    /// <summary>Last modification time; seeded items use <see cref="ItemPaths.SeedTime"/>. Admin mutations set it via `with`.</summary>
     public DateTimeOffset Modified { get; init; } = ItemPaths.SeedTime;
 
     /// <summary>Bumped on every content or permission change; feeds eTag/cTag.</summary>
@@ -78,6 +78,9 @@ public sealed class GraphModel(
 {
     public string TenantDomain { get; } = tenantDomain;
 
+    /// <summary>Change-log sequence number this snapshot is the state after (0 for a freshly loaded fixture).</summary>
+    public long Sequence { get; private init; }
+
     public IReadOnlyList<UserRecord> Users { get; } = users;
 
     public IReadOnlyList<GroupRecord> Groups { get; } = groups;
@@ -87,6 +90,19 @@ public sealed class GraphModel(
     public IReadOnlyList<DriveRecord> Drives { get; } = drives;
 
     public IReadOnlyList<ItemRecord> Items { get; } = items;
+
+    public GraphModel With(
+        IReadOnlyList<GroupRecord>? groups = null, IReadOnlyList<ItemRecord>? items = null, long? sequence = null) =>
+        new(TenantDomain, Users, groups ?? Groups, Sites, Drives, items ?? Items) { Sequence = sequence ?? Sequence };
+
+    public GroupRecord? FindGroup(string idOrKey) => Groups.FirstOrDefault(g =>
+        string.Equals(g.Key, idOrKey, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(g.Id, idOrKey, StringComparison.OrdinalIgnoreCase));
+
+    public UserRecord? FindUser(string idOrUpn) => Users.FirstOrDefault(u =>
+        string.Equals(u.Key, idOrUpn, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(u.Id, idOrUpn, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(u.UserPrincipalName, idOrUpn, StringComparison.OrdinalIgnoreCase));
 
     public DriveRecord? FindDrive(string idOrKey) => Drives.FirstOrDefault(d =>
         string.Equals(d.Id, idOrKey, StringComparison.OrdinalIgnoreCase)

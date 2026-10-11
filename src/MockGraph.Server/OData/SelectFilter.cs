@@ -8,7 +8,8 @@ public static class SelectFilter
     {
         var drop = item
             .Select(p => p.Key)
-            .Where(k => !k.StartsWith('@') && !k.Equals("id", StringComparison.OrdinalIgnoreCase)
+            .Where(k => !k.Contains('@') && !k.Equals("id", StringComparison.OrdinalIgnoreCase)
+                && !k.Equals("deleted", StringComparison.OrdinalIgnoreCase)
                 && !select.Contains(k, StringComparer.OrdinalIgnoreCase))
             .ToList();
 
