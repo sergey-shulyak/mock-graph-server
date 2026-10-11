@@ -21,6 +21,8 @@ WORKDIR /app
 COPY --from=build /app/publish .
 # Served by default: the content root is /app, so the relative default "fixtures/sample.yaml" resolves to /app/fixtures/sample.yaml.
 COPY fixtures ./fixtures
+COPY LICENSE THIRD-PARTY-NOTICES.md ./
+COPY LICENSES ./LICENSES
 
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080

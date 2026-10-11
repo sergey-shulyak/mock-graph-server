@@ -6,6 +6,8 @@ You point the official `Microsoft.Graph` SDK at it with a different base URL. Th
 
 It is built and maintained by the course mentor. Your team consumes it as a Docker image.
 
+> **Unofficial project.** This is an independent mock for development and testing. It is not affiliated with, endorsed by or supported by Microsoft. "Microsoft", "Microsoft Graph", "Microsoft 365" and "SharePoint" are trademarks of the Microsoft group of companies.
+
 ## Contents
 
 - [What it covers](#what-it-covers)
@@ -20,6 +22,7 @@ It is built and maintained by the course mentor. Your team consumes it as a Dock
 - [Writing a fixture](#writing-a-fixture)
 - [Known differences from Microsoft Graph](#known-differences-from-microsoft-graph)
 - [Development](#development)
+- [License](#license)
 
 ## What it covers
 
@@ -500,3 +503,7 @@ Conventions:
 ### Contract tests against a real tenant
 
 `tests/MockGraph.ContractTests` is a read-only suite that runs against the mock by default and against real Microsoft Graph when `GRAPH_BASE_URL` and `GRAPH_TOKEN` are set. See [docs/contract-tests.md](docs/contract-tests.md).
+
+## License
+
+[MIT](LICENSE). Third-party components shipped in the Docker image are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
