@@ -30,7 +30,7 @@ public static class DeltaCalculator
     /// <summary>
     /// Changes in (old, new] as the caller sees them. Visibility is evaluated on both snapshots, so an item that became
     /// unreadable is a delete and one that became readable is an upsert, whatever caused it (grant, revoke, group change).
-    /// Sharing-only changes are reported only when <paramref name="showSharing"/> is set, annotated as sharedChanged.
+    /// Sharing-only changes are always reported; <paramref name="showSharing"/> only adds the sharedChanged annotation.
     /// </summary>
     public static List<DeltaEntry> IncrementalDrive(
         GraphModel oldModel, GraphModel newModel, DriveRecord drive, string scopePath, CallerContext caller,
@@ -63,7 +63,7 @@ public static class DeltaCalculator
             if (visibleAfter)
             {
                 var becameVisible = !visibleBefore;
-                if (upsert || becameVisible || (sharing && showSharing))
+                if (upsert || becameVisible || sharing)
                 {
                     var shared = showSharing && (sharing || (becameVisible && before is not null));
                     result.Add(new DeltaEntry(after!, newModel.ParentOf(after!)?.Id, false, shared));

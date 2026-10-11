@@ -155,7 +155,7 @@ public sealed class DriveDeltaTests : IsolatedServerTest
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PermissionGrantedAndRevokedAreReportedOnlyWithThePreferHeader(bool withHeader)
+    public async Task PermissionGrantedAndRevokedAreReportedAndAnnotatedOnlyWithThePreferHeader(bool withHeader)
     {
         var client = As("app");
         var prefer = withHeader ? SharingPrefer : null;
@@ -168,17 +168,45 @@ public sealed class DriveDeltaTests : IsolatedServerTest
 
         foreach (var step in new[] { granted, revoked })
         {
-            if (withHeader)
-            {
-                var item = Assert.Single(step.Items);
-                Assert.Equal(IdOf("/HR/salary-bands.md"), item.Id);
-                Assert.True(IsShared(item));
-            }
-            else
-            {
-                Assert.Empty(step.Items);
-            }
+            var item = Assert.Single(step.Items);
+            Assert.Equal(IdOf("/HR/salary-bands.md"), item.Id);
+            Assert.Equal(withHeader, IsShared(item));
         }
+    }
+
+    [Fact]
+    public async Task WithoutPreferHeaderSharingChangeIsPresentOnTheWireWithoutAnnotation()
+    {
+        var baseline = await RawDrain("app", $"/v1.0/drives/{DriveId}/root/delta");
+        await Revoke(Onboarding, "user:erin");
+
+        var (items, _) = await RawDrain("app", baseline.DeltaLink);
+
+        var item = Assert.Single(items);
+        Assert.Equal(IdOf(Onboarding), item["id"]!.GetValue<string>());
+        Assert.Null(item["@microsoft.graph.sharedChanged"]);
+        Assert.Null(item["deleted"]);
+    }
+
+    [Fact]
+    public async Task SelectAppliesToDriveDeltaAndKeepsIdAnnotationsAndDeletedFacet()
+    {
+        var baseline = await RawDrain("app", $"/v1.0/drives/{DriveId}/root/delta");
+        await Revoke(Onboarding, "user:erin");
+        await DeleteFile("/HR/salary-bands.md");
+
+        var (items, _) = await RawDrain("app", baseline.DeltaLink.Replace("/delta?", "/delta?$select=name&"), SharingPrefer);
+
+        var shared = ById(items, Onboarding)!;
+        Assert.Equal("contractor-onboarding.md", shared["name"]!.GetValue<string>());
+        Assert.Null(shared["size"]);
+        Assert.Null(shared["file"]);
+        Assert.Equal("True", shared["@microsoft.graph.sharedChanged"]!.GetValue<string>());
+        Assert.NotNull(ById(items, "/HR/salary-bands.md")!["deleted"]);
+
+        var first = await RawGet("app", $"/v1.0/drives/{DriveId}/root/delta?$select=name&$top=2");
+        Assert.All(first["value"]!.AsArray(), n => Assert.Null(n!["size"]));
+        Assert.Contains("$select=name", first["@odata.nextLink"]!.GetValue<string>());
     }
 
     [Fact]
@@ -313,7 +341,7 @@ public sealed class DriveDeltaTests : IsolatedServerTest
         Assert.Null(deleted["@microsoft.graph.sharedChanged"]);
 
         var (plain, _) = await RawDrain("app", baseline.DeltaLink);
-        Assert.Null(ById(plain, Onboarding)); // header not sent: sharing-only change is invisible
+        Assert.Null(ById(plain, Onboarding)!["@microsoft.graph.sharedChanged"]); // header not sent: present, not annotated
         Assert.NotNull(ById(plain, "/HR/salary-bands.md")!["deleted"]);
         Assert.NotEmpty(next);
     }

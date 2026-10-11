@@ -99,8 +99,8 @@ Token from another epoch (after `/_admin/reset` or restart) -> `410 Gone` `resyn
 - Drive delta (`/drives/{id}/root/delta`, also `/items/{rootId}/delta`): first page starts with the
   root item; deleted items carry `deleted: {state:"deleted"}` and minimal fields. With
   `Prefer: deltashowsharingchanges`, items whose effective permissions changed carry
-  `"@microsoft.graph.sharedChanged": "True"` and the response echoes `Preference-Applied`. Without the
-  header, sharing-only changes are not reported. In a user context an item that became unreadable is
+  `"@microsoft.graph.sharedChanged": "True"`. Without the
+  header, sharing-only changes are still reported, just without the annotation. In a user context an item that became unreadable is
   reported as deleted. **Verify annotation name/value and header behaviour against the Graph docs
   (driveitem-delta) before implementing.**
 - Groups delta (`/groups/delta`): initial sync returns each group with `members@delta`
@@ -152,8 +152,9 @@ Principals/members are `user:<id>` / `group:<id>`. Group-membership cycles are r
 - **Verified against the docs:** annotation is `"@microsoft.graph.sharedChanged": "True"` (string). The header is
   `Prefer: deltashowsharingchanges` (docs say it is combined with `deltashowremovedasdeleted, deltatraversepermissiongaps`;
   we only look for `deltashowsharingchanges`). The docs describe no `Preference-Applied` echo, so none is sent.
-  Without the header, sharing-only changes are not reported (real Graph reports them); an item that becomes visible to a
-  user through a permission/group change is an upsert and carries sharedChanged only when the header is sent.
+  Sharing-only changes always appear in drive delta (as real Graph does); the header only adds the sharedChanged
+  annotation. An item that becomes visible to a user through a permission/group change is an upsert and carries
+  sharedChanged only when the header is sent.
   Deleted items are `{id, deleted:{state:"deleted"}, parentReference:{driveId,id}}` (no name, as SharePoint). The 410 has no `Location` header.
   `deltaExcludeParent`, `hierarchicalsharing` and timestamp tokens are not implemented. Incremental pages do not include parent folders.
 - **Groups delta** follows the docs: `members@delta` (direct members, typed, `@removed:{reason:"deleted"}`) is present unless
