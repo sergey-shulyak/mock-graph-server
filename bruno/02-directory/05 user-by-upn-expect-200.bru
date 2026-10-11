@@ -1,0 +1,23 @@
+meta {
+  name: user by UPN (expect 200)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users/alice@contoso-mock.onmicrosoft.com
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  The path accepts the fixture id (alice), the UPN or the GUID
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,23 @@
+meta {
+  name: remove erin from the site group again (expect 200)
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/_admin/sites/kb/siteGroups/kb-members/members
+  body: json
+  auth: none
+}
+
+body:json {
+  { "member": "user:erin" }
+}
+
+docs {
+  
+}
+
+assert {
+  res.status: eq 200
+}

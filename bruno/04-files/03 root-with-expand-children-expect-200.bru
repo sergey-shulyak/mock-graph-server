@@ -1,0 +1,23 @@
+meta {
+  name: root with $expand=children (expect 200)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root?$expand=children
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Children come back inline in the same response
+}
+
+assert {
+  res.status: eq 200
+}

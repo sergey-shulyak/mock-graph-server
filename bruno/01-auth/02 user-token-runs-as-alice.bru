@@ -1,0 +1,23 @@
+meta {
+  name: user token (runs as alice)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v1.0/me
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer user:alice
+}
+
+docs {
+  Delegated context: /me returns the signed-in user (expect 200)
+}
+
+assert {
+  res.status: eq 200
+}

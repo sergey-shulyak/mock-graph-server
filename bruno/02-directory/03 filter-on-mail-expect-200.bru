@@ -1,0 +1,23 @@
+meta {
+  name: $filter on mail (expect 200)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users?$filter=mail%20eq%20'alice@contoso-mock.onmicrosoft.com'
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  eq on mail (the UPN in this mock) returns exactly one user
+}
+
+assert {
+  res.status: eq 200
+}

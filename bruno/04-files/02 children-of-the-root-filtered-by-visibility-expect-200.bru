@@ -1,0 +1,23 @@
+meta {
+  name: children of the root, filtered by visibility (expect 200)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root/children
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Only children the caller can read. As app: every top-level folder
+}
+
+assert {
+  res.status: eq 200
+}

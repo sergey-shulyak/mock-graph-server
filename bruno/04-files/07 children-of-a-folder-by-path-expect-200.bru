@@ -1,0 +1,23 @@
+meta {
+  name: children of a folder by path (expect 200)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General:/children
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  root:/General:/children lists the folder's children
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,19 @@
+meta {
+  name: dump the state as YAML (expect 200)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/_admin/state
+  body: none
+  auth: none
+}
+
+docs {
+  The live state in fixture format. Save it to reuse as a fixture
+}
+
+assert {
+  res.status: eq 200
+}

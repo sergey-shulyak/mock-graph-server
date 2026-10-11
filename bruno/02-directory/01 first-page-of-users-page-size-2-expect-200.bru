@@ -1,0 +1,23 @@
+meta {
+  name: first page of users, page size 2 (expect 200)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users?$top=2
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  $top sets the page size; follow @odata.nextLink in the body to get the next page
+}
+
+assert {
+  res.status: eq 200
+}

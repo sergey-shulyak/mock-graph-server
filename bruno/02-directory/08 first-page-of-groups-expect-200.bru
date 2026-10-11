@@ -1,0 +1,23 @@
+meta {
+  name: first page of groups (expect 200)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/v1.0/groups?$top=3
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Groups are paged like users
+}
+
+assert {
+  res.status: eq 200
+}

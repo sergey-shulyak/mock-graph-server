@@ -1,0 +1,23 @@
+meta {
+  name: one group by id (expect 200)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/v1.0/groups/eng-backend
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  eng-backend is a fixture id, the same as its GUID would be
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,23 @@
+meta {
+  name: app token (sees everything)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users?$top=2
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer app
+}
+
+docs {
+  Application context: every item and user is visible (expect 200)
+}
+
+assert {
+  res.status: eq 200
+}

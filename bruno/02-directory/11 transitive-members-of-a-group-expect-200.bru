@@ -1,0 +1,23 @@
+meta {
+  name: transitive members of a group (expect 200)
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/v1.0/groups/engineering/transitiveMembers
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Flattened: users from every nested group appear here
+}
+
+assert {
+  res.status: eq 200
+}

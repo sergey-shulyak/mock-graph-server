@@ -1,0 +1,19 @@
+meta {
+  name: reset to the fixture (expect 200)
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/_admin/reset
+  body: none
+  auth: none
+}
+
+docs {
+  Reloads the fixture and starts a new epoch: all delta tokens from before now return 410 Gone
+}
+
+assert {
+  res.status: eq 200
+}

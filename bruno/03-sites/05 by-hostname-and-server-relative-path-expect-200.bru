@@ -1,0 +1,23 @@
+meta {
+  name: by hostname and server-relative path (expect 200)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/v1.0/sites/contoso-mock.sharepoint.com:/sites/kb
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Path addressing, the same form the SDK uses for sites
+}
+
+assert {
+  res.status: eq 200
+}

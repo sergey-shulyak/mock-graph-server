@@ -1,0 +1,23 @@
+meta {
+  name: revoke dave's direct grant (expect 200)
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/_admin/permissions
+  body: json
+  auth: none
+}
+
+body:json {
+  { "driveId": "{{driveId}}", "itemPath": "/Shared/contractor-onboarding.md", "principal": "user:dave" }
+}
+
+docs {
+  Without "role", every direct grant of that principal on the item is removed
+}
+
+assert {
+  res.status: eq 200
+}

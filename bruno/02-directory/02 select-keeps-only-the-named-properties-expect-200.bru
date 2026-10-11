@@ -1,0 +1,23 @@
+meta {
+  name: $select keeps only the named properties (expect 200)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users?$select=id,displayName,userPrincipalName
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Only id, displayName and userPrincipalName are returned, plus @odata annotations
+}
+
+assert {
+  res.status: eq 200
+}

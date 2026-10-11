@@ -1,0 +1,23 @@
+meta {
+  name: groups delta since a saved token (expect 200)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/v1.0/groups/delta?$deltatoken={{groupsDeltaToken}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Replace @groupsDeltaToken with the token from the previous groups deltaLink
+}
+
+assert {
+  res.status: eq 200
+}

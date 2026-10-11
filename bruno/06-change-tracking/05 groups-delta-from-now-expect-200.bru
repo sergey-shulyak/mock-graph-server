@@ -1,0 +1,23 @@
+meta {
+  name: groups delta from now (expect 200)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/v1.0/groups/delta?$deltatoken=latest
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  $deltatoken=latest starts from the current membership state
+}
+
+assert {
+  res.status: eq 200
+}

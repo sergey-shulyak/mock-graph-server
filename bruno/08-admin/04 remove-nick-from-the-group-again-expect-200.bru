@@ -1,0 +1,23 @@
+meta {
+  name: remove nick from the group again (expect 200)
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/_admin/groups/archived-project-atlas/members
+  body: json
+  auth: none
+}
+
+body:json {
+  { "member": "user:nick" }
+}
+
+docs {
+  The member must be a direct member, or the call returns 404
+}
+
+assert {
+  res.status: eq 200
+}

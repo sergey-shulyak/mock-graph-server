@@ -1,0 +1,19 @@
+meta {
+  name: delete the uploaded file (expect 200)
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{baseUrl}}/_admin/files?driveId={{driveId}}&path=/General/new-policy.md
+  body: none
+  auth: none
+}
+
+docs {
+  Deleting a file reports it as deleted in drive delta
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,23 @@
+meta {
+  name: add nick to an empty group (expect 200)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/_admin/groups/archived-project-atlas/members
+  body: json
+  auth: none
+}
+
+body:json {
+  { "member": "user:nick" }
+}
+
+docs {
+  nick can now read eng-docs:/Projects/Atlas (scenario 8 in company.notes.md)
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,23 @@
+meta {
+  name: simulate throttling, next 2 Graph calls get 429 (expect 200)
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/_admin/throttle
+  body: json
+  auth: none
+}
+
+body:json {
+  { "count": 2, "retryAfterSeconds": 1 }
+}
+
+docs {
+  count = number of Graph requests to throttle. retryAfterSeconds goes into the Retry-After header
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,23 @@
+meta {
+  name: drives of a site (expect 200)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/v1.0/sites/{{siteId}}/drives
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  kb has one drive (kb-docs). The engineering site has two (eng-docs and eng-runbooks)
+}
+
+assert {
+  res.status: eq 200
+}

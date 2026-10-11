@@ -1,0 +1,24 @@
+meta {
+  name: startsWith with $count (expect 200)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users?$filter=startsWith(displayName,'A')&$count=true
+  body: none
+  auth: none
+}
+
+headers {
+  ConsistencyLevel: eventual
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  $count needs ConsistencyLevel: eventual; @odata.count is the total after $filter
+}
+
+assert {
+  res.status: eq 200
+}

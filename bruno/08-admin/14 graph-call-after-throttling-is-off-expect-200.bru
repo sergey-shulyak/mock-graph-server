@@ -1,0 +1,23 @@
+meta {
+  name: Graph call after throttling is off (expect 200)
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users?$top=1
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Back to normal
+}
+
+assert {
+  res.status: eq 200
+}

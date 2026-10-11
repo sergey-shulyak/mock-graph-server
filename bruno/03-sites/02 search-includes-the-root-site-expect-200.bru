@@ -1,0 +1,23 @@
+meta {
+  name: search=* includes the root site (expect 200)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v1.0/sites?search=*
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  search=* returns every site, including the tenant root
+}
+
+assert {
+  res.status: eq 200
+}

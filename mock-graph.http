@@ -1,0 +1,366 @@
+# Mock Microsoft Graph server: hand-run requests
+#
+# Open this file in VS Code (REST Client), Visual Studio or Rider/IntelliJ and click "Send Request"
+# above any request. Start the server first (docker run -p 8080:8080 ...) or point @baseUrl elsewhere.
+#
+# Each request says what it shows and the status it should return, e.g. "(expect 404)".
+#
+# Switch user: change @token below to app, user:alice, user:bob, user:carol, user:erin, ...
+# (fixture ids, UPNs and GUIDs also work). Requests that set their own Authorization header ignore @token.
+#
+# Admin requests (/_admin) change the server state. Section 08 ends with a reset to the fixture.
+
+@baseUrl = http://localhost:8080
+# Bearer token: app (sees everything), user:alice, user:bob, user:carol, user:dave, user:erin, ...
+@token = app
+@siteId = kb
+@driveId = kb-docs
+@engDriveId = eng-docs
+# Item id of /General/office-wifi.md in kb-docs (stable: it is derived from drive and path)
+@itemId = 01FA63EF63C10CB29479D6D9D59E5A3AEA
+# Delta tokens: "latest" starts from now. Replace it with the token inside the deltaLink or nextLink
+# returned by the previous delta response (the part after "token=" or "$deltatoken=") to continue.
+@deltaToken = latest
+@groupsDeltaToken = latest
+
+### 01 Auth: app token (sees everything)
+# Application context: every item and user is visible (expect 200)
+GET {{baseUrl}}/v1.0/users?$top=2
+Authorization: Bearer app
+
+### 01 Auth: user token (runs as alice)
+# Delegated context: /me returns the signed-in user (expect 200)
+GET {{baseUrl}}/v1.0/me
+Authorization: Bearer user:alice
+
+### 01 Auth: /me with the app token is not a user (expect 400)
+# /me needs a user token; the app-only token gets 400 BadRequest
+GET {{baseUrl}}/v1.0/me
+Authorization: Bearer app
+
+### 01 Auth: missing token (expect 401)
+# No Authorization header at all gives Graph-style 401
+GET {{baseUrl}}/v1.0/users
+
+### 02 Directory: first page of users, page size 2 (expect 200)
+# $top sets the page size; follow @odata.nextLink in the body to get the next page
+GET {{baseUrl}}/v1.0/users?$top=2
+Authorization: Bearer {{token}}
+
+### 02 Directory: $select keeps only the named properties (expect 200)
+# Only id, displayName and userPrincipalName are returned, plus @odata annotations
+GET {{baseUrl}}/v1.0/users?$select=id,displayName,userPrincipalName
+Authorization: Bearer {{token}}
+
+### 02 Directory: $filter on mail (expect 200)
+# eq on mail (the UPN in this mock) returns exactly one user
+GET {{baseUrl}}/v1.0/users?$filter=mail%20eq%20'alice@contoso-mock.onmicrosoft.com'
+Authorization: Bearer {{token}}
+
+### 02 Directory: startsWith with $count (expect 200)
+# $count needs ConsistencyLevel: eventual; @odata.count is the total after $filter
+GET {{baseUrl}}/v1.0/users?$filter=startsWith(displayName,'A')&$count=true
+ConsistencyLevel: eventual
+Authorization: Bearer {{token}}
+
+### 02 Directory: user by UPN (expect 200)
+# The path accepts the fixture id (alice), the UPN or the GUID
+GET {{baseUrl}}/v1.0/users/alice@contoso-mock.onmicrosoft.com
+Authorization: Bearer {{token}}
+
+### 02 Directory: direct group memberships of alice (expect 200)
+# memberOf returns directoryObjects with @odata.type #microsoft.graph.group
+GET {{baseUrl}}/v1.0/users/alice/memberOf
+Authorization: Bearer {{token}}
+
+### 02 Directory: transitive memberships of alice (expect 200)
+# transitiveMemberOf also follows nested groups (eng-backend, on-call, devops, engineering, all-staff)
+GET {{baseUrl}}/v1.0/users/alice/transitiveMemberOf
+Authorization: Bearer {{token}}
+
+### 02 Directory: first page of groups (expect 200)
+# Groups are paged like users
+GET {{baseUrl}}/v1.0/groups?$top=3
+Authorization: Bearer {{token}}
+
+### 02 Directory: one group by id (expect 200)
+# eng-backend is a fixture id, the same as its GUID would be
+GET {{baseUrl}}/v1.0/groups/eng-backend
+Authorization: Bearer {{token}}
+
+### 02 Directory: direct members of a group (expect 200)
+# Direct members only: the nested groups eng-backend and eng-frontend are listed as groups
+GET {{baseUrl}}/v1.0/groups/engineering/members
+Authorization: Bearer {{token}}
+
+### 02 Directory: transitive members of a group (expect 200)
+# Flattened: users from every nested group appear here
+GET {{baseUrl}}/v1.0/groups/engineering/transitiveMembers
+Authorization: Bearer {{token}}
+
+### 03 Sites: list sites (expect 200)
+# The sites in the fixture (kb, engineering, hr, finance). The implicit root site is not listed
+GET {{baseUrl}}/v1.0/sites
+Authorization: Bearer {{token}}
+
+### 03 Sites: search=* includes the root site (expect 200)
+# search=* returns every site, including the tenant root
+GET {{baseUrl}}/v1.0/sites?search=*
+Authorization: Bearer {{token}}
+
+### 03 Sites: getAllSites (expect 200)
+# getAllSites is paged like the other collections
+GET {{baseUrl}}/v1.0/sites/getAllSites
+Authorization: Bearer {{token}}
+
+### 03 Sites: tenant root site (expect 200)
+# The root site, with siteCollection.hostname
+GET {{baseUrl}}/v1.0/sites/root
+Authorization: Bearer {{token}}
+
+### 03 Sites: by hostname and server-relative path (expect 200)
+# Path addressing, the same form the SDK uses for sites
+GET {{baseUrl}}/v1.0/sites/contoso-mock.sharepoint.com:/sites/kb
+Authorization: Bearer {{token}}
+
+### 03 Sites: by id (expect 200)
+# Site id from the fixture (kb)
+GET {{baseUrl}}/v1.0/sites/{{siteId}}
+Authorization: Bearer {{token}}
+
+### 03 Sites: drives of a site (expect 200)
+# kb has one drive (kb-docs). The engineering site has two (eng-docs and eng-runbooks)
+GET {{baseUrl}}/v1.0/sites/{{siteId}}/drives
+Authorization: Bearer {{token}}
+
+### 03 Sites: one drive by id (expect 200)
+# drives/{id} with the fixture drive id
+GET {{baseUrl}}/v1.0/drives/{{driveId}}
+Authorization: Bearer {{token}}
+
+### 04 Files: drive root (expect 200)
+# The drive root is visible to every valid token
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root
+Authorization: Bearer {{token}}
+
+### 04 Files: children of the root, filtered by visibility (expect 200)
+# Only children the caller can read. As app: every top-level folder
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root/children
+Authorization: Bearer {{token}}
+
+### 04 Files: root with $expand=children (expect 200)
+# Children come back inline in the same response
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root?$expand=children
+Authorization: Bearer {{token}}
+
+### 04 Files: item by id (expect 200)
+# /General/office-wifi.md by its id
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/items/{{itemId}}
+Authorization: Bearer {{token}}
+
+### 04 Files: item by path (expect 200)
+# Path addressing: root:/path/to/file: (note the trailing colon)
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:
+Authorization: Bearer {{token}}
+
+### 04 Files: item by path with $select (expect 200)
+# $select works on item GETs too
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:?$select=id,name,size
+Authorization: Bearer {{token}}
+
+### 04 Files: children of a folder by path (expect 200)
+# root:/General:/children lists the folder's children
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General:/children
+Authorization: Bearer {{token}}
+
+### 04 Files: content is a 302 to a download URL (expect 302)
+# The SDK follows the redirect. Raw HTTP clients see the 302 and its Location header
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:/content
+Authorization: Bearer {{token}}
+
+### 04 Files: permissions with an inherited siteGroup grant (expect 200)
+# office-wifi.md inherits grants from /General: the site group kb-members (grantedToV2.siteGroup)
+# and the Entra group all-staff, both with inheritedFrom
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:/permissions
+Authorization: Bearer {{token}}
+
+### 04 Files: direct siteGroup grants on a folder (expect 200)
+# /Architecture in the engineering drive has direct grants to siteGroup eng-members and eng-owners
+GET {{baseUrl}}/v1.0/drives/{{engDriveId}}/root:/Architecture:/permissions
+Authorization: Bearer {{token}}
+
+### 05 Visibility: alice can read prod-access.md (expect 200)
+# Direct grant to user:alice on /Engineering/Backend/prod-access.md
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root:/Engineering/Backend/prod-access.md:
+Authorization: Bearer user:alice
+
+### 05 Visibility: bob cannot see the same item (expect 404)
+# Same item, different user: bob is not in eng-backend. 404, not 403, so existence is not leaked
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root:/Engineering/Backend/prod-access.md:
+Authorization: Bearer user:bob
+
+### 05 Visibility: erin cannot see a company-wide page (expect 404)
+# erin (contractor) only has one document granted directly
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:
+Authorization: Bearer user:erin
+
+### 06 Change tracking: drive delta, first call (expect 200)
+# Full enumeration, 5 items per page. Follow @odata.nextLink until the response has @odata.deltaLink,
+# then copy the token from that deltaLink into @deltaToken for the requests below
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root/delta
+Authorization: Bearer {{token}}
+
+### 06 Change tracking: drive delta from now (expect 200)
+# token=latest returns no items and a fresh deltaLink. Use it to start syncing from this moment
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root/delta?token=latest
+Authorization: Bearer {{token}}
+
+### 06 Change tracking: drive delta since a saved token, with sharing changes (expect 200)
+# Replace @deltaToken with the token from the previous deltaLink. Prefer adds
+# "@microsoft.graph.sharedChanged": "True" to items whose permissions changed
+GET {{baseUrl}}/v1.0/drives/{{driveId}}/root/delta?token={{deltaToken}}
+Authorization: Bearer {{token}}
+Prefer: deltashowsharingchanges
+
+### 06 Change tracking: groups delta, first call (expect 200)
+# Group membership changes (members@delta). Membership is not in drive delta
+GET {{baseUrl}}/v1.0/groups/delta
+Authorization: Bearer {{token}}
+
+### 06 Change tracking: groups delta from now (expect 200)
+# $deltatoken=latest starts from the current membership state
+GET {{baseUrl}}/v1.0/groups/delta?$deltatoken=latest
+Authorization: Bearer {{token}}
+
+### 06 Change tracking: groups delta since a saved token (expect 200)
+# Replace @groupsDeltaToken with the token from the previous groups deltaLink
+GET {{baseUrl}}/v1.0/groups/delta?$deltatoken={{groupsDeltaToken}}
+Authorization: Bearer {{token}}
+
+### 07 Batch: two GETs in one $batch request (expect 200)
+# The outer call is 200; each sub-response has its own status (here 200 and 200)
+POST {{baseUrl}}/v1.0/$batch
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "requests": [
+    { "id": "1", "method": "GET", "url": "/users?$top=1" },
+    { "id": "2", "method": "GET", "url": "/drives/kb-docs/root:/General/office-wifi.md:" }
+  ]
+}
+
+### 08 Admin: grant dave read on a contractor document (expect 200)
+# Grant a direct permission. changed=true and a new sequence number
+POST {{baseUrl}}/_admin/permissions
+Content-Type: application/json
+
+{ "driveId": "{{driveId}}", "itemPath": "/Shared/contractor-onboarding.md", "principal": "user:dave", "role": "read" }
+
+### 08 Admin: revoke dave's direct grant (expect 200)
+# Without "role", every direct grant of that principal on the item is removed
+DELETE {{baseUrl}}/_admin/permissions
+Content-Type: application/json
+
+{ "driveId": "{{driveId}}", "itemPath": "/Shared/contractor-onboarding.md", "principal": "user:dave" }
+
+### 08 Admin: add nick to an empty group (expect 200)
+# nick can now read eng-docs:/Projects/Atlas (scenario 8 in company.notes.md)
+POST {{baseUrl}}/_admin/groups/archived-project-atlas/members
+Content-Type: application/json
+
+{ "member": "user:nick" }
+
+### 08 Admin: remove nick from the group again (expect 200)
+# The member must be a direct member, or the call returns 404
+DELETE {{baseUrl}}/_admin/groups/archived-project-atlas/members
+Content-Type: application/json
+
+{ "member": "user:nick" }
+
+### 08 Admin: add erin to a site group (expect 200)
+# Site group membership: erin gains everything kb-members grants (all company-wide pages)
+POST {{baseUrl}}/_admin/sites/kb/siteGroups/kb-members/members
+Content-Type: application/json
+
+{ "member": "user:erin" }
+
+### 08 Admin: remove erin from the site group again (expect 200)
+DELETE {{baseUrl}}/_admin/sites/kb/siteGroups/kb-members/members
+Content-Type: application/json
+
+{ "member": "user:erin" }
+
+### 08 Admin: upload a new file (expect 201)
+# Multipart upload. The file part is read from bruno/samples/new-policy.md (path relative to this file).
+# 201 Created because the file is new
+POST {{baseUrl}}/_admin/files
+Content-Type: multipart/form-data; boundary=MockGraphBoundary
+
+--MockGraphBoundary
+Content-Disposition: form-data; name="driveId"
+
+{{driveId}}
+--MockGraphBoundary
+Content-Disposition: form-data; name="path"
+
+/General/new-policy.md
+--MockGraphBoundary
+Content-Disposition: form-data; name="file"; filename="new-policy.md"
+Content-Type: text/markdown
+
+< ./bruno/samples/new-policy.md
+--MockGraphBoundary--
+
+### 08 Admin: replace the same file (expect 200)
+# Same path again: 200 OK, the file is replaced
+POST {{baseUrl}}/_admin/files
+Content-Type: multipart/form-data; boundary=MockGraphBoundary
+
+--MockGraphBoundary
+Content-Disposition: form-data; name="driveId"
+
+{{driveId}}
+--MockGraphBoundary
+Content-Disposition: form-data; name="path"
+
+/General/new-policy.md
+--MockGraphBoundary
+Content-Disposition: form-data; name="file"; filename="new-policy.md"
+Content-Type: text/markdown
+
+< ./bruno/samples/new-policy.md
+--MockGraphBoundary--
+
+### 08 Admin: delete the uploaded file (expect 200)
+# Deleting a file reports it as deleted in drive delta
+DELETE {{baseUrl}}/_admin/files?driveId={{driveId}}&path=/General/new-policy.md
+
+### 08 Admin: dump the state as YAML (expect 200)
+# The live state in fixture format. Save it to reuse as a fixture
+GET {{baseUrl}}/_admin/state
+
+### 08 Admin: simulate throttling, next 2 Graph calls get 429 (expect 200)
+# count = number of Graph requests to throttle. retryAfterSeconds goes into the Retry-After header
+POST {{baseUrl}}/_admin/throttle
+Content-Type: application/json
+
+{ "count": 2, "retryAfterSeconds": 1 }
+
+### 08 Admin: a Graph call while throttled (expect 429)
+# The first of the two throttled calls: 429 TooManyRequests with Retry-After
+GET {{baseUrl}}/v1.0/users?$top=1
+Authorization: Bearer {{token}}
+
+### 08 Admin: turn throttling off (expect 200)
+# Clears the remaining throttled calls
+DELETE {{baseUrl}}/_admin/throttle
+
+### 08 Admin: Graph call after throttling is off (expect 200)
+# Back to normal
+GET {{baseUrl}}/v1.0/users?$top=1
+Authorization: Bearer {{token}}
+
+### 08 Admin: reset to the fixture (expect 200)
+# Reloads the fixture and starts a new epoch: all delta tokens from before now return 410 Gone
+POST {{baseUrl}}/_admin/reset

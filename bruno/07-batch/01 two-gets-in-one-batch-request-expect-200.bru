@@ -1,0 +1,32 @@
+meta {
+  name: two GETs in one $batch request (expect 200)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/v1.0/$batch
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "requests": [
+      { "id": "1", "method": "GET", "url": "/users?$top=1" },
+      { "id": "2", "method": "GET", "url": "/drives/kb-docs/root:/General/office-wifi.md:" }
+    ]
+  }
+}
+
+docs {
+  The outer call is 200; each sub-response has its own status (here 200 and 200)
+}
+
+assert {
+  res.status: eq 200
+}

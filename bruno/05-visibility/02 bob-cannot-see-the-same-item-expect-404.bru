@@ -1,0 +1,23 @@
+meta {
+  name: bob cannot see the same item (expect 404)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root:/Engineering/Backend/prod-access.md:
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer user:bob
+}
+
+docs {
+  Same item, different user: bob is not in eng-backend. 404, not 403, so existence is not leaked
+}
+
+assert {
+  res.status: eq 404
+}

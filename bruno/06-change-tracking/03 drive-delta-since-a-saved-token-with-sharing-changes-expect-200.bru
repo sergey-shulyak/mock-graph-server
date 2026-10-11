@@ -1,0 +1,24 @@
+meta {
+  name: drive delta since a saved token, with sharing changes (expect 200)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root/delta?token={{deltaToken}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  Prefer: deltashowsharingchanges
+}
+
+docs {
+  Replace @deltaToken with the token from the previous deltaLink. Prefer adds "@microsoft.graph.sharedChanged": "True" to items whose permissions changed
+}
+
+assert {
+  res.status: eq 200
+}

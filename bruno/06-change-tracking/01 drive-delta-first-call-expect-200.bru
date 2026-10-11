@@ -1,0 +1,23 @@
+meta {
+  name: drive delta, first call (expect 200)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root/delta
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Full enumeration, 5 items per page. Follow @odata.nextLink until the response has @odata.deltaLink, then copy the token from that deltaLink into @deltaToken for the requests below
+}
+
+assert {
+  res.status: eq 200
+}

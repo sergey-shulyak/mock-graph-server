@@ -1,0 +1,23 @@
+meta {
+  name: add erin to a site group (expect 200)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/_admin/sites/kb/siteGroups/kb-members/members
+  body: json
+  auth: none
+}
+
+body:json {
+  { "member": "user:erin" }
+}
+
+docs {
+  Site group membership: erin gains everything kb-members grants (all company-wide pages)
+}
+
+assert {
+  res.status: eq 200
+}

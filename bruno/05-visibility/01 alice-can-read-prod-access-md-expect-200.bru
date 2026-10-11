@@ -1,0 +1,23 @@
+meta {
+  name: alice can read prod-access.md (expect 200)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root:/Engineering/Backend/prod-access.md:
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer user:alice
+}
+
+docs {
+  Direct grant to user:alice on /Engineering/Backend/prod-access.md
+}
+
+assert {
+  res.status: eq 200
+}

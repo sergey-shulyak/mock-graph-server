@@ -1,0 +1,23 @@
+meta {
+  name: direct members of a group (expect 200)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/v1.0/groups/engineering/members
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Direct members only: the nested groups eng-backend and eng-frontend are listed as groups
+}
+
+assert {
+  res.status: eq 200
+}

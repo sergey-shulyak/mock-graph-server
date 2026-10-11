@@ -1,0 +1,23 @@
+meta {
+  name: drive delta from now (expect 200)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root/delta?token=latest
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  token=latest returns no items and a fresh deltaLink. Use it to start syncing from this moment
+}
+
+assert {
+  res.status: eq 200
+}

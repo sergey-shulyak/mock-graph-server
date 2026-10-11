@@ -1,0 +1,23 @@
+meta {
+  name: list sites (expect 200)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/v1.0/sites
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  The sites in the fixture (kb, engineering, hr, finance). The implicit root site is not listed
+}
+
+assert {
+  res.status: eq 200
+}

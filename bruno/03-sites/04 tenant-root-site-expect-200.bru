@@ -1,0 +1,23 @@
+meta {
+  name: tenant root site (expect 200)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v1.0/sites/root
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  The root site, with siteCollection.hostname
+}
+
+assert {
+  res.status: eq 200
+}

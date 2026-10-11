@@ -1,0 +1,23 @@
+meta {
+  name: drive root (expect 200)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  The drive root is visible to every valid token
+}
+
+assert {
+  res.status: eq 200
+}

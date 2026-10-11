@@ -1,0 +1,19 @@
+meta {
+  name: missing token (expect 401)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users
+  body: none
+  auth: none
+}
+
+docs {
+  No Authorization header at all gives Graph-style 401
+}
+
+assert {
+  res.status: eq 401
+}

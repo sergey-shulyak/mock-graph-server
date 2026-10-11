@@ -1,0 +1,23 @@
+meta {
+  name: /me with the app token is not a user (expect 400)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v1.0/me
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer app
+}
+
+docs {
+  /me needs a user token; the app-only token gets 400 BadRequest
+}
+
+assert {
+  res.status: eq 400
+}

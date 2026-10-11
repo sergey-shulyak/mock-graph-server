@@ -1,0 +1,23 @@
+meta {
+  name: transitive memberships of alice (expect 200)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/v1.0/users/alice/transitiveMemberOf
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  transitiveMemberOf also follows nested groups (eng-backend, on-call, devops, engineering, all-staff)
+}
+
+assert {
+  res.status: eq 200
+}

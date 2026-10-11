@@ -1,0 +1,27 @@
+meta {
+  name: content is a 302 to a download URL (expect 302)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:/content
+  body: none
+  auth: none
+}
+
+settings {
+  followRedirects: false
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  The SDK follows the redirect. Raw HTTP clients see the 302 and its Location header
+}
+
+assert {
+  res.status: eq 302
+}

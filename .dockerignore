@@ -23,3 +23,7 @@ Dockerfile
 .dockerignore
 compose.yaml
 MockGraph.sln
+
+# Hand-testing API collections (not needed in the image)
+bruno
+mock-graph.http

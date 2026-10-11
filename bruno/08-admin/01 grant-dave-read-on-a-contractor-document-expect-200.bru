@@ -1,0 +1,23 @@
+meta {
+  name: grant dave read on a contractor document (expect 200)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/_admin/permissions
+  body: json
+  auth: none
+}
+
+body:json {
+  { "driveId": "{{driveId}}", "itemPath": "/Shared/contractor-onboarding.md", "principal": "user:dave", "role": "read" }
+}
+
+docs {
+  Grant a direct permission. changed=true and a new sequence number
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,23 @@
+meta {
+  name: direct siteGroup grants on a folder (expect 200)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{engDriveId}}/root:/Architecture:/permissions
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  /Architecture in the engineering drive has direct grants to siteGroup eng-members and eng-owners
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,23 @@
+meta {
+  name: by id (expect 200)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/v1.0/sites/{{siteId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Site id from the fixture (kb)
+}
+
+assert {
+  res.status: eq 200
+}

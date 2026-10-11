@@ -1,0 +1,23 @@
+meta {
+  name: one drive by id (expect 200)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  drives/{id} with the fixture drive id
+}
+
+assert {
+  res.status: eq 200
+}

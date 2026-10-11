@@ -1,0 +1,23 @@
+meta {
+  name: item by id (expect 200)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/items/{{itemId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  /General/office-wifi.md by its id
+}
+
+assert {
+  res.status: eq 200
+}

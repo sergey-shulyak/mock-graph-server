@@ -13,6 +13,7 @@ It is built and maintained by the course mentor. Your team consumes it as a Dock
 - [What it covers](#what-it-covers)
 - [What it does not cover](#what-it-does-not-cover)
 - [Running it](#running-it)
+- [Trying the API by hand](#trying-the-api-by-hand)
 - [Using the Graph SDK](#using-the-graph-sdk)
 - [Authentication](#authentication)
 - [Sample data and visibility](#sample-data-and-visibility)
@@ -135,6 +136,15 @@ docker run --rm -p 8080:8080 \
 ```
 
 If the fixture is missing or invalid (unknown principal, duplicate id, bad role, missing source file), the server fails at startup and prints the reason.
+
+## Trying the API by hand
+
+The repository has two request collections with the same ~58 requests, in learning order: auth, directory, sites, files, visibility, change tracking, `$batch` and the Admin API. Each request says what it shows and the status it should return.
+
+- **VS Code, Visual Studio or Rider/IntelliJ:** open `mock-graph.http` and click *Send Request* above a request. VS Code needs the REST Client extension. The variables at the top set `@baseUrl` (default `http://localhost:8080`) and `@token`.
+- **Bruno:** open the `bruno/` folder in Bruno and select the `local` environment. Each request has an assertion on its expected status.
+
+To act as another user, change `token` (`@token` in the `.http` file, `token` in the `local` environment) to `user:alice`, `user:erin` and so on. `app` sees everything. Admin requests change the server state; the last one resets it to the fixture.
 
 ## Using the Graph SDK
 

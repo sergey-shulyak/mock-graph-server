@@ -1,0 +1,23 @@
+meta {
+  name: permissions with an inherited siteGroup grant (expect 200)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:/permissions
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  office-wifi.md inherits grants from /General: the site group kb-members (grantedToV2.siteGroup) and the Entra group all-staff, both with inheritedFrom
+}
+
+assert {
+  res.status: eq 200
+}

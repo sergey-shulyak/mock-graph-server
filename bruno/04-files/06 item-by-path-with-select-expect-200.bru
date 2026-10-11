@@ -1,0 +1,23 @@
+meta {
+  name: item by path with $select (expect 200)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:?$select=id,name,size
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  $select works on item GETs too
+}
+
+assert {
+  res.status: eq 200
+}

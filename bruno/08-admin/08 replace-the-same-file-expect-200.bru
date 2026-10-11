@@ -1,0 +1,25 @@
+meta {
+  name: replace the same file (expect 200)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/_admin/files
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  driveId: {{driveId}}
+  path: /General/new-policy.md
+  file: @file(samples/new-policy.md)
+}
+
+docs {
+  Same path again: 200 OK, the file is replaced
+}
+
+assert {
+  res.status: eq 200
+}

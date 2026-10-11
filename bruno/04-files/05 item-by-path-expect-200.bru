@@ -1,0 +1,23 @@
+meta {
+  name: item by path (expect 200)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Path addressing: root:/path/to/file: (note the trailing colon)
+}
+
+assert {
+  res.status: eq 200
+}

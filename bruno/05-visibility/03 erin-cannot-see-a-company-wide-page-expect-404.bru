@@ -1,0 +1,23 @@
+meta {
+  name: erin cannot see a company-wide page (expect 404)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v1.0/drives/{{driveId}}/root:/General/office-wifi.md:
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer user:erin
+}
+
+docs {
+  erin (contractor) only has one document granted directly
+}
+
+assert {
+  res.status: eq 404
+}

@@ -1,0 +1,25 @@
+meta {
+  name: upload a new file (expect 201)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/_admin/files
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  driveId: {{driveId}}
+  path: /General/new-policy.md
+  file: @file(samples/new-policy.md)
+}
+
+docs {
+  Multipart upload. The file part is read from bruno/samples/new-policy.md (path relative to this file). 201 Created because the file is new
+}
+
+assert {
+  res.status: eq 201
+}
