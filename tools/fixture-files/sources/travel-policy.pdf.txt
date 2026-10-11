@@ -1,0 +1,26 @@
+# Business travel policy
+Version 3.0, effective 1 January 2026. Owner: Finance (Irene Finance).
+
+## Booking
+- Book all travel through the Contoso Travel portal at least 14 days before departure to get the best fares.
+- Trips with a total cost above EUR 1,500 need pre-approval from the Finance Director.
+- Your manager must approve the purpose of the trip before booking.
+
+## Transport
+- Flights shorter than 6 hours: economy class. Flights of 6 hours or longer: premium economy.
+- Trains: second class. Seat reservations are reimbursed.
+- Private car: EUR 0.25 per km, with a mileage log.
+- Taxis only when public transport is not practical or after 22:00.
+
+## Accommodation and meals
+- Hotels up to EUR 140 per night, including breakfast where offered.
+- Meals while travelling: EUR 35 per day. No receipts are needed for meals within this per diem.
+
+## During the trip
+Keep your security basics: use the VPN on public Wi-Fi, never leave laptops in cars and report loss of a device within 1 hour.
+
+## After the trip
+Submit the expense claim within 30 days. Unused tickets must be reported to Finance within 5 days so that refunds can be requested.
+
+## Cancellations
+If a trip is cancelled, cancel bookings within 24 hours. Non-refundable costs caused by late cancellation may be charged to the department budget.

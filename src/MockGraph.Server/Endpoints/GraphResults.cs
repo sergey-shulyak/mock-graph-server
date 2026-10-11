@@ -17,12 +17,20 @@ internal static class GraphResults
         MockGraphOptions options,
         IReadOnlyList<TEntry> all,
         string context,
-        Func<List<TEntry>, string?, TResponse> build)
+        Func<List<TEntry>, string?, TResponse> build,
+        string[]? extraOptions = null,
+        Func<ODataQuery, IReadOnlyList<TEntry>, (IReadOnlyList<TEntry> Items, long? Count)>? refine = null)
         where TResponse : IParsable, IAdditionalDataHolder
     {
-        var query = ODataQuery.Parse(ctx.Request, collection: true, options);
-        var (items, next) = Paging.Page(all, query, ctx.Request, options, store.Epoch);
+        var query = ODataQuery.Parse(ctx.Request, collection: true, options, extraOptions ?? []);
+        var (refined, count) = refine?.Invoke(query, all) ?? (all, null);
+        var (items, next) = Paging.Page(refined, query, ctx.Request, options, store.Epoch);
         var body = build(items, next);
+        if (count is { } total)
+        {
+            body.AdditionalData["@odata.count"] = total;
+        }
+
         body.AdditionalData["@odata.context"] = $"{Paging.BaseUrl(ctx.Request)}/v1.0/$metadata#{context}";
         return new GraphJsonResult(body, query);
     }

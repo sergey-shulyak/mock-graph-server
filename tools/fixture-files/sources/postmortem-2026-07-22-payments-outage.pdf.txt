@@ -1,0 +1,34 @@
+# Postmortem: payments outage, 22 July 2026
+Severity: SEV1. Duration: 1 hour 52 minutes (09:18 to 11:10 Kyiv time). Incident commander: Henry DevOps. Communications lead: Dave Support. Author: Alice Backend.
+
+## Summary
+Payment webhooks from the payment provider were rejected because the TLS certificate of the Contoso webhook endpoint had expired. Customers could start payments, but the settlements were not confirmed. 3,100 payment attempts showed as failed or pending in the customer portal. No money was lost; all payments were reconciled by the end of the day.
+
+## Impact
+- 3,100 payment attempts affected.
+- 97 customer organisations contacted Support.
+- The Enterprise availability commitment of 99.95 percent for July was missed.
+
+## Timeline
+- 09:18 The provider starts getting handshake errors. No alert fires because certificate expiry was not monitored.
+- 09:41 Support reports a spike of tickets. The primary on-call is paged manually.
+- 09:50 The incident commander is paged. A SEV1 is declared.
+- 10:05 The first status page update is published (47 minutes after the start, outside the 15 minute target).
+- 10:42 The expired certificate is identified.
+- 11:03 A renewed certificate is deployed.
+- 11:10 Webhooks flow again; backlog replay starts.
+
+## Root cause
+The certificate for the webhook endpoint was renewed manually once a year. The renewal reminder was sent to a mailbox of a former employee.
+
+## What went well
+The reconciliation job replayed all pending payments correctly and the ledger stayed balanced.
+
+## What went badly
+There was no alert for expiring certificates, and the incident was detected by customers instead of monitoring.
+
+## Actions
+1. Roll out cert-manager for all public endpoints. Owner: Henry DevOps. Due 30 September 2026.
+2. Add an alert for TLS certificates expiring in less than 30 days. Owner: Henry DevOps. Done 5 August.
+3. Page the incident commander automatically for payment webhook failure rates above 5 percent. Owner: Alice Backend. Due 15 September.
+4. Review all manual yearly tasks for named-person ownership. Owner: Frank Manager. Due 31 October.

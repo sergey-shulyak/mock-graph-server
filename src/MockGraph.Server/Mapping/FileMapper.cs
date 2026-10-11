@@ -36,16 +36,29 @@ public sealed class FileMapper
     public static FileMapper For(HttpContext ctx, GraphStore store, GraphModel model) =>
         new(model, ctx.GetCaller(), Paging.BaseUrl(ctx.Request), store.Epoch);
 
-    public Site ToSite(SiteRecord site) => new()
+    public Site ToSite(SiteRecord site)
     {
-        Id = site.Id,
-        OdataType = null,
-        Name = site.Key,
-        DisplayName = site.DisplayName,
-        WebUrl = SiteUrl(site),
-        CreatedDateTime = ItemPaths.SeedTime,
-        LastModifiedDateTime = ItemPaths.SeedTime,
-    };
+        var result = new Site
+        {
+            Id = site.Id,
+            OdataType = null,
+            Name = site.Key,
+            DisplayName = site.DisplayName,
+            IsPersonalSite = false,
+            WebUrl = SiteUrl(site),
+            CreatedDateTime = ItemPaths.SeedTime,
+            LastModifiedDateTime = ItemPaths.SeedTime,
+        };
+
+        if (site.IsRoot)
+        {
+            // Graph reports siteCollection (and the root facet) on the root site only.
+            result.Root = new Root();
+            result.SiteCollection = new SiteCollection { Hostname = Model.Host, Root = new Root() };
+        }
+
+        return result;
+    }
 
     public Drive ToDrive(DriveRecord drive) => new()
     {
@@ -118,6 +131,11 @@ public sealed class FileMapper
     public Permission ToPermission(DriveRecord drive, EffectiveGrant effective)
     {
         var grant = effective.Grant;
+        if (grant.Principal.Kind == PrincipalKind.SiteGroup)
+        {
+            return SiteGroupPermission(drive, effective);
+        }
+
         var entry = Model.Resolve(grant.Principal)!;
         var identity = new Identity { Id = entry.Id, DisplayName = entry.DisplayName };
         identity.AdditionalData["email"] = entry is UserRecord user ? user.UserPrincipalName : $"{entry.Key}@{Model.TenantDomain}";
@@ -144,6 +162,30 @@ public sealed class FileMapper
         };
     }
 
+    /// <summary>
+    /// SharePoint site groups surface only as grantedToV2.siteGroup (numeric, site-local id; loginName equals the title).
+    /// The deprecated grantedTo is left out, as for users and groups.
+    /// </summary>
+    private Permission SiteGroupPermission(DriveRecord drive, EffectiveGrant effective)
+    {
+        var grant = effective.Grant;
+        var group = Model.FindSiteGroup(grant.Principal.Key)!;
+        return new Permission
+        {
+            Id = Ids.Permission(effective.Source.Id, grant.Principal.ToString(), grant.Role.ToString().ToLowerInvariant()),
+            OdataType = null,
+            Roles = [grant.Role.ToString().ToLowerInvariant()],
+            GrantedToV2 = new SharePointIdentitySet
+            {
+                OdataType = null,
+                SiteGroup = new SharePointIdentity { Id = group.WireId, DisplayName = group.DisplayName, LoginName = group.DisplayName },
+            },
+            InheritedFrom = effective.Inherited
+                ? new ItemReference { DriveId = drive.Id, Id = effective.Source.Id, Path = ItemPath(drive, effective.Source.Path) }
+                : null,
+        };
+    }
+
     public string DownloadUrl(ItemRecord item) =>
         $"{_baseUrl}/_download/{DownloadTokens.Encode(item.DriveKey, item.Id, _epoch)}";
 
@@ -153,7 +195,7 @@ public sealed class FileMapper
     private static string EscapePath(string path) =>
         string.Concat(path.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(s => "/" + Uri.EscapeDataString(s)));
 
-    private string SiteUrl(SiteRecord site) => $"https://{Ids.TenantHost(Model.TenantDomain)}/sites/{site.Key}";
+    private string SiteUrl(SiteRecord site) => $"https://{Model.Host}{(site.Path == "/" ? "" : site.Path)}";
 
     private string DriveUrl(DriveRecord drive) => $"{SiteUrl(Model.SiteOf(drive))}/{Uri.EscapeDataString(drive.Name)}";
 }

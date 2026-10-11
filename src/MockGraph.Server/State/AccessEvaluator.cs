@@ -41,7 +41,7 @@ public sealed class AccessEvaluator(GraphModel model)
         _ => false,
     };
 
-    /// <summary>The user itself plus every group it belongs to, directly or through nesting (cycle-safe).</summary>
+    /// <summary>The user itself plus every group (and SharePoint site group) it belongs to, directly or through nesting (cycle-safe).</summary>
     private HashSet<PrincipalRef> PrincipalsOf(UserRecord user)
     {
         if (_principalSets.TryGetValue(user.Key, out var cached))
@@ -60,6 +60,12 @@ public sealed class AccessEvaluator(GraphModel model)
                     queue.Enqueue(group.Ref);
                 }
             }
+        }
+
+        // Site groups: a user is in one when it, or any group it belongs to, is a listed member.
+        foreach (var siteGroup in model.SiteGroups.Where(g => g.Members.Any(set.Contains)))
+        {
+            set.Add(siteGroup.Ref);
         }
 
         return _principalSets[user.Key] = set;

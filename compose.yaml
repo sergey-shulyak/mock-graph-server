@@ -5,10 +5,12 @@ services:
     image: ghcr.io/sergey-shulyak/mock-graph-server:latest
     ports:
       - "8080:8080"
-    # Optional: use your own fixture instead of the built-in sample.
+    # The image serves the rich Contoso fixture (fixtures/company.yaml) by default; see fixtures/company.notes.md.
+    # Optional: switch to the small sample, or use your own fixture.
     # Mount a host folder at a path that does not hide the built-in fixtures, then point the server at it.
     # environment:
-    #   MOCKGRAPH__FIXTUREPATH: /app/my-fixtures/team.yaml
+    #   MOCKGRAPH__FIXTUREPATH: fixtures/sample.yaml          # the small sample (5 users, 1 drive)
+    #   MOCKGRAPH__FIXTUREPATH: /app/my-fixtures/team.yaml    # your own file, together with the volume below
     #   MOCKGRAPH__DEFAULTPAGESIZE: "5"
     # volumes:
     #   - ./my-fixtures:/app/my-fixtures:ro

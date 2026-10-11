@@ -1,0 +1,23 @@
+# Statement of work: UX design services
+Contractor: Olga Contractor (independent contractor). Client: Contoso Software. Sponsor: Frank Manager.
+
+## Engagement
+- Start date: 1 June 2026. End date: 18 December 2026.
+- Role: UX designer for project Phoenix, the new customer portal.
+- Maximum hours: 120 per month. Rate: EUR 55 per hour, excluding taxes.
+- Invoices are submitted monthly and paid within 30 days after approval by the sponsor.
+
+## Deliverables
+1. Interaction design for the login, dashboard and invoices pages by 31 July 2026.
+2. A design token set for colour, spacing and typography by 15 August 2026.
+3. Prototypes for the payments and bank feed pages by 30 September 2026.
+4. Handover documentation and design system guidelines by 18 December 2026.
+
+## Access
+Olga Contractor receives a temporary account valid for 90 days, renewed by the sponsor, and access to the Phoenix project folders only. Contoso devices are not provided; work is done on the contractor's own equipment without storing Contoso source code locally.
+
+## Confidentiality and IP
+A non-disclosure agreement was signed on 28 May 2026. All work products belong to Contoso from the moment of creation.
+
+## Termination
+Either party may end the engagement with 14 days of written notice.

@@ -24,6 +24,8 @@ public abstract class IsolatedServerTest : IDisposable
 
     protected HttpClient Http => _http;
 
+    protected MockGraphFactory Factory => _factory;
+
     protected IsolatedServerTest()
     {
         _http = _factory.CreateClient();

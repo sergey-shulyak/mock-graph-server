@@ -15,14 +15,41 @@ public static class AdminEndpoints
 
     private sealed record MemberRequest(string? Member);
 
+    private sealed record ThrottleRequest(int? Count, int? RetryAfterSeconds);
+
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
     {
         var admin = app.MapGroup("/_admin");
 
-        admin.MapPost("/reset", (GraphStore store) =>
+        admin.MapPost("/reset", (GraphStore store, ThrottleState throttle) =>
         {
             store.Reload();
+            throttle.Clear();
             return Results.Ok(new { status = "reset", epoch = store.Epoch });
+        });
+
+        admin.MapPost("/throttle", async (HttpContext ctx, ThrottleState throttle) =>
+        {
+            var r = await Body<ThrottleRequest>(ctx);
+            if (r.Count is not > 0)
+            {
+                throw GraphException.BadRequest("'count' is required and must be at least 1.");
+            }
+
+            var count = r.Count.Value;
+            var seconds = r.RetryAfterSeconds ?? 1;
+            if (seconds is < 0 or > 3600)
+            {
+                throw GraphException.BadRequest("'retryAfterSeconds' must be between 0 and 3600.");
+            }
+
+            throttle.Set(count, seconds);
+            return Results.Ok(new { remaining = count, retryAfterSeconds = seconds });
+        });
+        admin.MapDelete("/throttle", (ThrottleState throttle) =>
+        {
+            throttle.Clear();
+            return Results.Ok(new { remaining = 0 });
         });
 
         admin.MapPost("/permissions", async (HttpContext ctx, GraphStore store) =>
@@ -40,6 +67,11 @@ public static class AdminEndpoints
             Done(store.AddGroupMember(groupId, (await Body<MemberRequest>(ctx)).Member)));
         admin.MapDelete("/groups/{groupId}/members", async (string groupId, HttpContext ctx, GraphStore store) =>
             Done(store.RemoveGroupMember(groupId, (await Body<MemberRequest>(ctx)).Member)));
+
+        admin.MapPost("/sites/{siteId}/siteGroups/{groupId}/members", async (string siteId, string groupId, HttpContext ctx, GraphStore store) =>
+            Done(store.AddSiteGroupMember(siteId, groupId, (await Body<MemberRequest>(ctx)).Member)));
+        admin.MapDelete("/sites/{siteId}/siteGroups/{groupId}/members", async (string siteId, string groupId, HttpContext ctx, GraphStore store) =>
+            Done(store.RemoveSiteGroupMember(siteId, groupId, (await Body<MemberRequest>(ctx)).Member)));
 
         admin.MapPost("/files", async (HttpContext ctx, GraphStore store) =>
         {

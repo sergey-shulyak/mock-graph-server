@@ -1,0 +1,19 @@
+## Sheet: Departments
+Department | Headcount 2026 | Headcount plan 2027 | Budget 2027 EUR | Status
+Engineering | 110 | 124 | 8400000 | Draft
+Product and Design | 35 | 38 | 2300000 | Draft
+Support | 30 | 32 | 1250000 | Draft
+Sales | 25 | 28 | 2100000 | Draft
+Marketing | 18 | 20 | 1700000 | Draft
+Finance | 6 | 6 | 520000 | Draft
+HR | 8 | 9 | 610000 | Draft
+Legal | 3 | 3 | 450000 | Draft
+IT | 5 | 6 | 980000 | Draft
+Total | 240 | 266 | 18310000 | Draft
+## Sheet: Assumptions
+Assumption | Value
+Planned ARR growth 2027 | 22 percent
+Salary increase pool | 6 percent from 1 February 2027
+Phoenix programme budget carried over | 420000 EUR
+Contingency reserve | 3 percent of total
+Board approval date | 1 December 2026

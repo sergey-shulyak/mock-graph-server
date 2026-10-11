@@ -1,0 +1,16 @@
+## Sheet: Bands 2026
+Level | Title | Minimum EUR per month gross | Maximum EUR per month gross
+L1 | Junior | 1800 | 2600
+L2 | Associate | 2500 | 3500
+L3 | Engineer / Specialist | 3400 | 4800
+L4 | Senior | 4600 | 6300
+L5 | Lead / Staff | 6000 | 8000
+L6 | Principal / Head of | 7800 | 10000
+L7 | Director | 9500 | 13000
+## Sheet: Notes
+Item | Value
+Classification | Restricted
+Effective from | 2026-02-01
+Next review | January 2027
+Owner | HR (Carol HR)
+Shared with | HR and management only

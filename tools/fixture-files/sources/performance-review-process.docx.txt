@@ -1,0 +1,39 @@
+# Performance review process
+Version 2026. Owner: HR (Carol HR).
+
+## Overview
+Contoso runs one annual review cycle with a mid-year check-in. The annual review decides ratings and salary adjustments for the next year.
+
+## Calendar
+| Step | Date |
+|---|---|
+| Goal setting | January, within the first 3 weeks |
+| Mid-year check-in | 30 June |
+| Self-review due | 5 December |
+| Peer feedback due | 8 December |
+| Manager review due | 15 December |
+| Calibration meetings | 16 to 18 December |
+| Results shared with employees | 22 December |
+| Salary changes effective | 1 February |
+
+## Ratings
+Ratings use a five point scale.
+- 1: Needs improvement
+- 2: Partially meets expectations
+- 3: Meets expectations
+- 4: Exceeds expectations
+- 5: Outstanding
+
+Most employees are expected to land on 3 or 4. A rating of 5 requires a written justification approved by the head of department.
+
+## Peer feedback
+Each employee nominates at least 3 peers to give written feedback. The manager may add up to 2 more. Feedback is shared with the employee without names.
+
+## Calibration
+HR and the heads of department compare ratings across teams to keep them consistent. Managers do not tell employees their rating before calibration is finished.
+
+## Performance improvement plan
+An employee rated 1, or rated 2 twice in a row, receives a performance improvement plan lasting 60 days with fortnightly check-ins. The plan is written by the manager with HR.
+
+## Appeals
+An employee may ask HR to review a rating within 10 working days after results are shared.

@@ -70,7 +70,7 @@ public static class FixtureLoader
 
         var userKeys = users.Select(u => u.Key).ToHashSet();
         var groupKeys = groups.Select(g => g.Key).ToHashSet();
-        bool Exists(PrincipalRef p) => p.Kind == PrincipalKind.User ? userKeys.Contains(p.Key) : groupKeys.Contains(p.Key);
+        bool Exists(PrincipalRef p) => p.Kind == PrincipalKind.User ? userKeys.Contains(p.Key) : p.Kind == PrincipalKind.Group && groupKeys.Contains(p.Key);
 
         foreach (var member in groups.SelectMany(g => g.Members.Select(m => (Group: g, Member: m))).Where(x => !Exists(x.Member)))
         {
@@ -78,23 +78,68 @@ public static class FixtureLoader
         }
 
         var sites = new List<SiteRecord>();
+        var siteGroups = new List<SiteGroupRecord>();
         var drives = new List<DriveRecord>();
         var items = new List<ItemRecord>();
 
+        EnsureUnique(dto.Sites.Select(s => s.Id), "site");
+        if (dto.Sites.Count(s => s.Root) > 1)
+        {
+            throw new InvalidDataException("Only one site can be marked 'root: true'.");
+        }
+
+        EnsureUnique(dto.Sites.SelectMany(s => s.SiteGroups).Select(g => g.Id), "site group");
         foreach (var siteDto in dto.Sites)
         {
-            sites.Add(new SiteRecord(Require(siteDto.Id, "site id"), Ids.Site(domain, siteDto.Id), siteDto.DisplayName));
+            var key = Require(siteDto.Id, "site id");
+            var path = siteDto.Path is { } p ? "/" + p.Trim('/') : siteDto.Root ? "/" : $"/sites/{key}";
+            sites.Add(new SiteRecord(key, Ids.Site(domain, key), siteDto.DisplayName) { Path = path, IsRoot = siteDto.Root });
 
+            var index = 0;
+            foreach (var groupDto in siteDto.SiteGroups)
+            {
+                var members = groupDto.Members.Select(PrincipalRef.Parse).ToList();
+                foreach (var member in members)
+                {
+                    if (member.Kind == PrincipalKind.SiteGroup)
+                    {
+                        throw new InvalidDataException($"Site group '{groupDto.Id}' has member '{member}'; members must be users or groups.");
+                    }
+
+                    if (!Exists(member))
+                    {
+                        throw new InvalidDataException($"Site group '{groupDto.Id}' has unknown member '{member}'.");
+                    }
+                }
+
+                // SharePoint numbers site groups from 3 (Owners, Visitors, Members are 3-5 on a classic team site).
+                siteGroups.Add(new SiteGroupRecord(Require(groupDto.Id, "site group id"), key, (3 + index++).ToString(), groupDto.DisplayName, members));
+            }
+        }
+
+        if (!sites.Any(s => s.IsRoot))
+        {
+            // Real tenants always have a root site; students may never have modelled one.
+            sites.Insert(0, new SiteRecord("root", Ids.Site(domain, "root"), domain.Split('.')[0]) { Path = "/", IsRoot = true, IsImplicit = true });
+        }
+
+        var groupsBySite = siteGroups.GroupBy(g => g.SiteKey).ToDictionary(g => g.Key, g => g.Select(x => x.Key).ToHashSet());
+        foreach (var siteDto in dto.Sites)
+        {
             foreach (var driveDto in siteDto.Drives)
             {
                 var drive = new DriveRecord(Require(driveDto.Id, "drive id"), Ids.Drive(driveDto.Id), siteDto.Id, driveDto.Name);
                 drives.Add(drive);
-                items.AddRange(BuildItems(drive, driveDto, fixtureDir, Exists));
+                var ownGroups = groupsBySite.GetValueOrDefault(siteDto.Id) ?? [];
+                items.AddRange(BuildItems(
+                    drive, driveDto, fixtureDir,
+                    p => p.Kind == PrincipalKind.SiteGroup ? ownGroups.Contains(p.Key) : Exists(p)));
             }
         }
 
         EnsureUnique(drives.Select(d => d.Key), "drive");
-        return new GraphModel(domain, users, groups, sites, drives, items);
+        EnsureUnique(sites.Select(s => s.Key), "site");
+        return new GraphModel(domain, users, groups, sites, drives, items, siteGroups);
     }
 
     private static IEnumerable<ItemRecord> BuildItems(DriveRecord drive, DriveDto dto, string fixtureDir, Func<PrincipalRef, bool> exists)
@@ -114,7 +159,7 @@ public static class FixtureLoader
                 var principal = PrincipalRef.Parse(p.Principal);
                 return exists(principal)
                     ? new GrantRecord(principal, ParseRole(p.Role))
-                    : throw new InvalidDataException($"Item '{path}' grants unknown principal '{p.Principal}'.");
+                    : throw new InvalidDataException($"Item '{path}' grants unknown principal '{p.Principal}' (site groups must belong to the item's own site).");
             }).ToList();
 
             var isFolder = item.Content is null && item.Source is null && item.ContentBase64 is null;

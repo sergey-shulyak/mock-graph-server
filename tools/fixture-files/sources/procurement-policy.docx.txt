@@ -1,0 +1,28 @@
+# Procurement policy
+Version 2026-02. Owner: Finance (Irene Finance).
+
+## Purpose
+This policy sets who may approve purchases of goods and services and how suppliers are selected.
+
+## Approval thresholds
+| Total value of purchase | Requirements |
+|---|---|
+| Up to EUR 1,000 | Approval of the department head. No purchase order needed. |
+| EUR 1,000 to EUR 10,000 | Approval of the Finance Director, two written quotes and a purchase order. |
+| Above EUR 10,000 | Approval of the management committee, three written quotes, a purchase order and a contract reviewed by Legal. |
+
+Purchases must not be split into smaller orders to avoid thresholds.
+
+## Software and subscriptions
+Software licences above EUR 200 per year need Finance approval in addition to the manager. Software requests start in the IT portal.
+
+## Supplier checks
+- Every supplier that handles Contoso or customer data goes through a security and privacy review, which takes up to 5 business days.
+- Suppliers are paid on net 30 terms unless the contract says otherwise.
+- Invoices are paid only against a purchase order or a signed contract.
+
+## Signing contracts
+Contracts with a yearly value up to EUR 50,000 may be signed by the Finance Director. Higher values are signed by the CEO. Employees may not sign contracts on behalf of Contoso.
+
+## Conflicts of interest
+Anyone with a personal interest in a supplier must tell the Finance Director and take no part in the decision.

@@ -45,6 +45,12 @@ groups:
 sites:
   - id: kb
     displayName: Knowledge Base
+    # SharePoint site groups: on a real tenant most library permissions go to these, and Graph reports them as
+    # grantedToV2.siteGroup (not "group"). Members are users or Entra groups; reference one as `siteGroup:<id>`.
+    siteGroups:
+      - id: kb-members
+        displayName: Knowledge Base Members
+        members: [group:all-staff]
     drives:
       - id: kb-docs
         name: Documents
@@ -52,6 +58,7 @@ sites:
           - path: /General
             permissions:
               - { principal: group:all-staff, role: read }
+              - { principal: siteGroup:kb-members, role: read }   # same people again, via a SharePoint site group
           - path: /General/vacation-policy.md
             content: |
               # Vacation policy

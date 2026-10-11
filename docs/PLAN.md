@@ -165,11 +165,59 @@ Principals/members are `user:<id>` / `group:<id>`. Group-membership cycles are r
   revoke without `role` removes all roles of that principal. `/_admin/state` is YAML in the fixture format (binary or
   whitespace-fragile files as `contentBase64`, accepted by the loader); runtime timestamps and eTag versions are not included.
 
+## Implementation notes (M6)
+
+Connector roadblocks: site discovery, directory `$filter`, `$expand`, SharePoint site groups, `$batch`, throttling. Each was checked
+against the v1.0 docs; where Graph differs from the brief the docs won.
+
+- **Sites.** `SiteRecord` gained `Path`, `IsRoot`, `IsImplicit`. Without a `root: true` site the loader inserts an implicit one (key `root`,
+  displayName = first label of the tenant domain, path `/`, no drives; not written by `/_admin/state`). `GraphModel.FindSite` accepts wire id,
+  fixture key, `root`, the bare host, and `host:/path` (URL-encoded or not; the SDK sends `Sites["host:/sites/kb"]` escaped). `siteCollection`/`root`
+  are emitted on the root site only (docs: "available only on the root site"). One catch-all `/sites/{**rest}` serves `GET /sites/{id}` and the
+  colon forms because a literal `{siteId}` route next to a catch-all trips ASP0022. The SDK sends `$search=` and `getAllSites()`; the docs show `search=`
+  and `getAllSites`; both spellings are routed. Plain `GET /sites` skips the implicit root (existing test/contract expectations); `search=*` and `getAllSites` include it.
+  `ODataQuery.Parse` now records accepted extra options in `Extras`, and `Paging.Page` re-emits them in `@odata.nextLink`.
+- **Directory query.** `OData/DirectoryQuery.cs`: tiny recursive-descent `$filter` (eq, startsWith, and/or, parentheses), `$orderby`, `$count`.
+  Docs (aad-advanced-queries): eq/startsWith on these properties work without advanced mode; `$count=true` without `ConsistencyLevel: eventual` is
+  silently ignored (not a 400; only the `/$count` URL segment errors); `$filter`+`$orderby` needs advanced mode (`Request_UnsupportedQuery`). Unsupported filter
+  parts are `400 BadRequest` as the task asked. `@odata.count` goes through `AdditionalData`.
+- **$expand.** `children` only, on driveItem GETs (item, root, path). The driveItem-list-permissions doc states permissions cannot be expanded on a
+  get or a collection, so `$expand=permissions` is a 400 rather than something the mock invents. Expanded children use the same visibility filter.
+- **Site groups.** New `PrincipalKind.SiteGroup`, `SiteGroupRecord` (wire id = 3 + index in the site), `GraphModel.SiteGroups`. `AccessEvaluator.PrincipalsOf` adds a
+  site group when any member is in the user's user+group closure. Permission mapping emits `grantedToV2.siteGroup {id, displayName, loginName=displayName}`
+  and no `grantedTo` (consistent with users/groups; real Graph's deprecated `grantedTo` form for site groups could not be verified). Membership
+  mutations log `SiteGroupMemberAdded/Removed` plus one `ItemSharingChanged` per item whose effective grants include the group, so drive delta (app and user callers)
+  and sequence numbers stay correct even when no item is affected. No v1.0 Graph endpoint lists classic site-group members (the v1.0 `sharePointGroup` members API is for SharePoint Embedded
+  containers), so none was added; the README documents the limitation.
+- **Batch.** `BatchMiddleware` runs after auth and before `UseRouting()` (called explicitly in `Program.cs`), builds a `DefaultHttpContext` per sub-request with the caller copied
+  from the outer request and runs it through `next`, so routing, endpoints and the Graph error mapping are the real ones. `dependsOn` is implemented (DFS, 424 on failed dependency, 400 on cycles).
+- **Throttle.** `ThrottleState` singleton; `ThrottleMiddleware` sits before auth and skips the batch envelope; the batch consumes one per sub-request. Body follows the
+  throttling doc (`TooManyRequests`, innerError with code/message/status). Reset clears it.
+- **Test edits.** `DirectoryTests.UnsupportedFilter_Is400` used `startswith`, which is now supported; it uses `endsWith` instead.
+
 ## Fixture note
 
 `fixtures/sample.yaml` had `/Engineering/Backend` inheriting `group:engineering` from `/Engineering`,
 which contradicted its own expected-visibility table ("bob: NOT Backend/*"). `breakInheritance: true`
 was added to `/Engineering/Backend`. The table at the bottom of the fixture is the test oracle.
+
+## Company fixture
+
+`fixtures/company.yaml` (fictional company Contoso) is the default fixture of the Docker image; `fixtures/sample.yaml`
+stays the server's built-in default (`MockGraphOptions.FixturePath`), so `dotnet run` and every existing test are
+unchanged. The image sets `MOCKGRAPH__FIXTUREPATH=fixtures/company.yaml` in the Dockerfile and ships both files. This
+was chosen over changing the built-in default because the tests assert the sample's exact item counts and visibility.
+
+- Superset of the sample (same ids, paths, content, permissions); 16 users, 15 groups, 4 sites, 6 drives, 79 files, 41 folders.
+- Binary documents (16 files: docx, pdf, xlsx, pptx) are generated by `tools/fixture-files/build_fixture_files.py` from
+  plain-text sources next to it, with fixed metadata and zip timestamps so rebuilds are byte-identical.
+- `fixtures/company.visibility.yaml` is the RBAC oracle, produced by `tools/fixture-visibility/compute_visibility.py`, an
+  independent re-implementation of the CLAUDE.md rules (no shared code with `AccessEvaluator`).
+- `tests/MockGraph.Tests/CompanyFixtureTests.cs` serves the fixture, walks every principal's tree through the Graph SDK
+  (children plus get-by-id) and compares it with the oracle; it also proves the superset property, the
+  `/_admin/state` round trip, drive delta completeness and that every `source:` file downloads with the declared size and
+  content type. The first run of the two implementations agreed; no server bug was found.
+- The students' guide is `fixtures/company.notes.md`.
 
 ## Milestones (one commit each, Conventional Commits)
 

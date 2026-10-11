@@ -186,7 +186,7 @@ public sealed class DirectoryTests(MockGraphFactory factory) : IClassFixture<Moc
     public async Task UnsupportedFilter_Is400()
     {
         var ex = await Assert.ThrowsAsync<ODataError>(() =>
-            As("app").Users.GetAsync(rc => rc.QueryParameters.Filter = "startswith(displayName,'A')"));
+            As("app").Users.GetAsync(rc => rc.QueryParameters.Filter = "endsWith(displayName,'A')"));
         Assert.Equal(400, ex.ResponseStatusCode);
         Assert.Equal("BadRequest", ex.Error!.Code);
         Assert.Contains("$filter", ex.Error.Message);

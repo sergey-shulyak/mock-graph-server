@@ -13,9 +13,10 @@
 mise.toml
 .DS_Store
 
-# Tests and docs are not part of the image
+# Tests, docs and fixture-generation tools are not part of the image
 tests
 docs
+tools
 
 # Image and compose files themselves
 Dockerfile

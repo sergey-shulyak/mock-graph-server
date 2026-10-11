@@ -4,6 +4,7 @@ public enum PrincipalKind
 {
     User,
     Group,
+    SiteGroup,
 }
 
 public enum PermissionRole
@@ -22,7 +23,8 @@ public readonly record struct PrincipalRef(PrincipalKind Kind, string Key)
         {
             "user" => PrincipalKind.User,
             "group" => PrincipalKind.Group,
-            _ => throw new InvalidDataException($"Invalid principal '{text}'. Expected 'user:<id>' or 'group:<id>'."),
+            "siteGroup" => PrincipalKind.SiteGroup,
+            _ => throw new InvalidDataException($"Invalid principal '{text}'. Expected 'user:<id>', 'group:<id>' or 'siteGroup:<id>'."),
         };
 
         return key.Length == 0
@@ -30,7 +32,7 @@ public readonly record struct PrincipalRef(PrincipalKind Kind, string Key)
             : new PrincipalRef(kind, key);
     }
 
-    public override string ToString() => $"{(Kind == PrincipalKind.User ? "user" : "group")}:{Key}";
+    public override string ToString() => $"{Kind switch { PrincipalKind.User => "user", PrincipalKind.Group => "group", _ => "siteGroup" }}:{Key}";
 }
 
 public abstract record DirectoryEntry(string Key, string Id, string DisplayName)
@@ -46,7 +48,23 @@ public sealed record GroupRecord(string Key, string Id, string DisplayName, IRea
 
 public sealed record GrantRecord(PrincipalRef Principal, PermissionRole Role);
 
-public sealed record SiteRecord(string Key, string Id, string DisplayName);
+public sealed record SiteRecord(string Key, string Id, string DisplayName)
+{
+    /// <summary>Server-relative URL path; "/" for the root site.</summary>
+    public string Path { get; init; } = $"/sites/{Key}";
+
+    public bool IsRoot { get; init; }
+
+    /// <summary>True for the root site the loader adds when the fixture marks none (not written back by /_admin/state).</summary>
+    public bool IsImplicit { get; init; }
+}
+
+/// <summary>A SharePoint site group (Owners/Members/Visitors style). Members are users or Entra groups; not a directory object.</summary>
+/// <param name="WireId">Numeric principal id as SharePoint reports it, unique only within the site.</param>
+public sealed record SiteGroupRecord(string Key, string SiteKey, string WireId, string DisplayName, IReadOnlyList<PrincipalRef> Members)
+{
+    public PrincipalRef Ref => new(PrincipalKind.SiteGroup, Key);
+}
 
 public sealed record DriveRecord(string Key, string Id, string SiteKey, string Name);
 
@@ -74,7 +92,8 @@ public sealed class GraphModel(
     IReadOnlyList<GroupRecord> groups,
     IReadOnlyList<SiteRecord> sites,
     IReadOnlyList<DriveRecord> drives,
-    IReadOnlyList<ItemRecord> items)
+    IReadOnlyList<ItemRecord> items,
+    IReadOnlyList<SiteGroupRecord>? siteGroups = null)
 {
     public string TenantDomain { get; } = tenantDomain;
 
@@ -91,9 +110,15 @@ public sealed class GraphModel(
 
     public IReadOnlyList<ItemRecord> Items { get; } = items;
 
+    public IReadOnlyList<SiteGroupRecord> SiteGroups { get; } = siteGroups ?? [];
+
     public GraphModel With(
-        IReadOnlyList<GroupRecord>? groups = null, IReadOnlyList<ItemRecord>? items = null, long? sequence = null) =>
-        new(TenantDomain, Users, groups ?? Groups, Sites, Drives, items ?? Items) { Sequence = sequence ?? Sequence };
+        IReadOnlyList<GroupRecord>? groups = null, IReadOnlyList<ItemRecord>? items = null, long? sequence = null,
+        IReadOnlyList<SiteGroupRecord>? siteGroups = null) =>
+        new(TenantDomain, Users, groups ?? Groups, Sites, Drives, items ?? Items, siteGroups ?? SiteGroups) { Sequence = sequence ?? Sequence };
+
+    public SiteGroupRecord? FindSiteGroup(string key) =>
+        SiteGroups.FirstOrDefault(g => string.Equals(g.Key, key, StringComparison.OrdinalIgnoreCase));
 
     public GroupRecord? FindGroup(string idOrKey) => Groups.FirstOrDefault(g =>
         string.Equals(g.Key, idOrKey, StringComparison.OrdinalIgnoreCase)
@@ -108,9 +133,38 @@ public sealed class GraphModel(
         string.Equals(d.Id, idOrKey, StringComparison.OrdinalIgnoreCase)
         || string.Equals(d.Key, idOrKey, StringComparison.OrdinalIgnoreCase));
 
-    public SiteRecord? FindSite(string idOrKey) => Sites.FirstOrDefault(s =>
-        string.Equals(s.Id, idOrKey, StringComparison.OrdinalIgnoreCase)
-        || string.Equals(s.Key, idOrKey, StringComparison.OrdinalIgnoreCase));
+    public SiteRecord? RootSite => Sites.FirstOrDefault(s => s.IsRoot);
+
+    public string Host => Ids.TenantHost(TenantDomain);
+
+    /// <summary>
+    /// Accepts the wire id, the fixture key, "root", the bare tenant host (the root site), and the path forms
+    /// "host:/server/relative/path" (with or without a trailing colon, URL-encoded or not).
+    /// </summary>
+    public SiteRecord? FindSite(string idOrKey)
+    {
+        var text = idOrKey.Contains('%') ? Uri.UnescapeDataString(idOrKey) : idOrKey;
+        if (text.Equals("root", StringComparison.OrdinalIgnoreCase) || text.Equals(Host, StringComparison.OrdinalIgnoreCase))
+        {
+            return RootSite;
+        }
+
+        var colon = text.IndexOf(':');
+        if (colon > 0)
+        {
+            return text[..colon].Equals(Host, StringComparison.OrdinalIgnoreCase) ? FindSiteByPath(text[(colon + 1)..].TrimEnd(':')) : null;
+        }
+
+        return Sites.FirstOrDefault(s =>
+            string.Equals(s.Id, text, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(s.Key, text, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public SiteRecord? FindSiteByPath(string serverRelativePath)
+    {
+        var normalized = "/" + serverRelativePath.Trim('/');
+        return Sites.FirstOrDefault(s => string.Equals(s.Path, normalized, StringComparison.OrdinalIgnoreCase));
+    }
 
     public SiteRecord SiteOf(DriveRecord drive) => Sites.First(s => s.Key == drive.SiteKey);
 
@@ -149,9 +203,13 @@ public sealed class GraphModel(
         return Items.Where(i => i.DriveKey == folder.DriveKey && i.Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
-    public DirectoryEntry? Resolve(PrincipalRef principal) => principal.Kind == PrincipalKind.User
-        ? Users.FirstOrDefault(u => u.Key == principal.Key)
-        : Groups.FirstOrDefault(g => g.Key == principal.Key);
+    /// <summary>Resolves a user or Entra group principal; site groups are not directory entries (use <see cref="FindSiteGroup"/>).</summary>
+    public DirectoryEntry? Resolve(PrincipalRef principal) => principal.Kind switch
+    {
+        PrincipalKind.User => Users.FirstOrDefault(u => u.Key == principal.Key),
+        PrincipalKind.Group => Groups.FirstOrDefault(g => g.Key == principal.Key),
+        _ => null,
+    };
 }
 
 internal static class StringExtensions

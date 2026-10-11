@@ -1,0 +1,27 @@
+# Customer SLA summary
+Owner: Support (Dave Support) and Legal. Version 2026-04. For internal use; the contractual text is in the master service agreement.
+
+## Availability commitments
+| Plan | Monthly availability |
+|---|---|
+| Starter | 99.5 percent |
+| Business | 99.9 percent |
+| Enterprise | 99.95 percent |
+
+## Support hours
+- Starter: email support during business hours.
+- Business: 24 hours a day, 5 days a week.
+- Enterprise: 24 hours a day, 7 days a week.
+
+## Response targets for first response
+| Priority | Meaning | Business | Enterprise |
+|---|---|---|---|
+| P1 | Service unavailable | 1 hour | 30 minutes |
+| P2 | Major feature impaired | 4 business hours | 2 business hours |
+| P3 | Minor issue or question | 1 business day | 1 business day |
+
+## Service credits
+If monthly availability is below the commitment, the customer receives a credit of 10 percent of the monthly fee. If availability is below 99.0 percent, the credit is 25 percent. Credits must be claimed within 30 days after the end of the month and are the exclusive remedy unless the contract says otherwise.
+
+## Exclusions
+Planned maintenance announced 5 days in advance, outages caused by the customer or by third-party banks and providers beyond our control are excluded.

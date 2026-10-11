@@ -1,0 +1,31 @@
+# Project Phoenix charter
+Sponsor and owner: Frank Manager. Version 1.2, approved 21 April 2026.
+
+## Purpose
+Rebuild the Contoso Portal, the customer-facing web application of Contoso Ledger, on a modern frontend stack that is faster, accessible and easier to change.
+
+## Goals
+- Reduce the Largest Contentful Paint to under 2.5 seconds at the 75th percentile.
+- Increase the login-to-first-action conversion by 10 percent.
+- Reduce support tickets about portal usability by 20 percent.
+- Meet WCAG 2.1 level AA.
+
+## Scope
+In scope: login, dashboard, invoices, payments, bank feeds and settings pages. Out of scope for the first release: dark mode, mobile apps, and the reporting module of Contoso Pulse.
+
+## Timeline
+| Milestone | Date |
+|---|---|
+| Kickoff | 4 May 2026 |
+| Design complete | 31 July 2026 |
+| Public beta | 16 November 2026 |
+| General availability | 1 February 2027 |
+
+## Budget
+The approved budget is EUR 420,000. It covers 9 team members and a UX contractor. Spending is reviewed monthly with the Finance Director.
+
+## Team
+Frank Manager (owner), Bob Frontend (frontend lead), Maya Newhire (frontend engineer, from October 2026), Grace QA (quality), Olga Contractor (UX designer, contractor), plus four backend and platform engineers part-time.
+
+## Risks
+Key risks are staffing, a dependency on API v2 stability and the interaction with the retirement of API v1 on 31 December 2026.

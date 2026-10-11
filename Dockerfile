@@ -19,12 +19,16 @@ RUN arch="$TARGETARCH"; if [ "$arch" = "amd64" ]; then arch=x64; fi; \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
-# Served by default: the content root is /app, so the relative default "fixtures/sample.yaml" resolves to /app/fixtures/sample.yaml.
+# Both fixtures ship in the image. The image serves the rich Contoso fixture by default; set
+# MOCKGRAPH__FIXTUREPATH=fixtures/sample.yaml for the small one. The content root is /app, so the relative path
+# resolves to /app/fixtures/company.yaml. (The server's own built-in default stays fixtures/sample.yaml, which
+# is what `dotnet run` and the tests use.)
 COPY fixtures ./fixtures
 COPY LICENSE THIRD-PARTY-NOTICES.md ./
 COPY LICENSES ./LICENSES
 
-ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_URLS=http://+:8080 \
+    MOCKGRAPH__FIXTUREPATH=fixtures/company.yaml
 EXPOSE 8080
 
 # The aspnet image ships a non-root "app" user (APP_UID is set in the image).

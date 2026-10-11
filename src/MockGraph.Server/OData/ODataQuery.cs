@@ -7,8 +7,12 @@ using MockGraph.Server.Serialization;
 
 namespace MockGraph.Server.OData;
 
-public sealed record ODataQuery(int? Top, string? SelectRaw, string? SkipToken)
+public sealed record ODataQuery(int? Top, string? SelectRaw, string? SkipToken, IReadOnlyDictionary<string, string>? Extras = null)
 {
+    /// <summary>Raw value of an endpoint-specific option that <see cref="Parse"/> was told to accept (case-insensitive name).</summary>
+    public string? Extra(string name) =>
+        Extras is not null && Extras.TryGetValue(name, out var value) ? value : null;
+
     public IReadOnlyList<string>? Select => SelectRaw is null
         ? null
         : SelectRaw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
@@ -18,6 +22,7 @@ public sealed record ODataQuery(int? Top, string? SelectRaw, string? SkipToken)
         int? top = null;
         string? select = null;
         string? skipToken = null;
+        var extras = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var (key, values) in request.Query)
         {
@@ -36,7 +41,11 @@ public sealed record ODataQuery(int? Top, string? SelectRaw, string? SkipToken)
             {
                 skipToken = value;
             }
-            else if (!extraAllowed.Contains(key, StringComparer.OrdinalIgnoreCase))
+            else if (extraAllowed.Contains(key, StringComparer.OrdinalIgnoreCase))
+            {
+                extras[key] = value;
+            }
+            else
             {
                 throw GraphException.BadRequest($"Query option '{key}' is not supported by this endpoint.");
             }
@@ -47,7 +56,7 @@ public sealed record ODataQuery(int? Top, string? SelectRaw, string? SkipToken)
             throw GraphException.BadRequest("$select must name at least one property.");
         }
 
-        return new ODataQuery(top, select, skipToken);
+        return new ODataQuery(top, select, skipToken, extras);
     }
 }
 
@@ -82,6 +91,11 @@ public static class Paging
         if (query.SelectRaw is not null)
         {
             parts.Add($"$select={Uri.EscapeDataString(query.SelectRaw)}");
+        }
+
+        foreach (var (name, value) in query.Extras ?? new Dictionary<string, string>())
+        {
+            parts.Add($"{name}={Uri.EscapeDataString(value)}");
         }
 
         parts.Add($"$skiptoken={Encode(next, epoch)}");

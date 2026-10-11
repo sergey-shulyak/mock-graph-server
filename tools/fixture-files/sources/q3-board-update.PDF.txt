@@ -1,0 +1,29 @@
+# Q3 2026 board update
+Confidential. Prepared by the management committee on 6 October 2026.
+
+## Headline numbers
+| Metric | Q3 2026 |
+|---|---|
+| Revenue | EUR 7.4 million (up 18 percent year on year) |
+| Annual recurring revenue (ARR) | EUR 29.1 million |
+| Customers | 412 |
+| New customers in quarter | 38 |
+| Net revenue retention | 109 percent |
+| Quarterly gross churn | 1.2 percent |
+| Cash balance | EUR 6.8 million |
+| Headcount | 240 |
+
+## Product
+Project Phoenix, the new customer portal, is on track for public beta on 16 November 2026 and general availability on 1 February 2027. The ledger API v2 has 61 percent of API traffic. API v1 will be retired on 31 December 2026.
+
+## Operations
+The payments outage of 22 July 2026 lasted 1 hour 52 minutes and was classified SEV1. Service credits issued to customers in Q3 total EUR 61,000. One Enterprise customer has asked for additional compensation; this is handled by Legal.
+
+## Risks
+- Staffing risk in the frontend team before general availability.
+- Concentration: the ten largest customers represent 31 percent of ARR.
+- The uncertainty of exchange rates between the euro and the hryvnia.
+
+## Decisions requested
+1. Approve the 2027 hiring plan of 26 additional positions.
+2. Approve the 2027 budget on 1 December 2026.

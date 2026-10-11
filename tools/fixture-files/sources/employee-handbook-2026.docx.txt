@@ -1,0 +1,91 @@
+# Contoso employee handbook 2026
+Edition of 1 January 2026. Owner: HR (Carol HR). Applies to all employees in Lviv, Krakow and remote.
+
+## 1. Welcome
+This handbook summarises how employment works at Contoso. Detailed policies live in the HR site under Policies. If the handbook and a detailed policy differ, the detailed policy applies.
+
+## 2. Employment basics
+- A full-time week is 40 hours. Core hours are 11:00 to 16:00 Kyiv time.
+- The probation period is 3 months. During probation either side may end employment with 2 weeks of notice.
+- After probation the notice period is 1 month for employees.
+- Every role belongs to a level from L1 to L7. Levels are discussed in the annual review.
+- Salary is paid on the 25th of each month. If the 25th is not a working day, it is paid on the previous working day.
+
+## 3. Working time and presence
+Employees work in the office at least 2 days per week and may work remotely up to 3 days per week with their manager's agreement. The full rules are in the remote work policy. Overtime must be agreed with the manager in advance and is compensated with time off in the following month.
+
+## 4. Vacation and leave
+- Every employee has 24 working days of paid vacation per year. Requests go through the HR portal at least 2 weeks in advance.
+- Up to 5 unused vacation days can be carried over to the next year and must be used by 31 March.
+- Vacation of 10 consecutive working days or more must be planned with the manager at least 1 month ahead.
+- Sick leave: up to 10 paid sick days per year. Details are in the sick leave policy.
+- Parental leave: 18 weeks fully paid for the primary caregiver and 4 weeks for the secondary caregiver.
+- Unpaid leave of up to 30 calendar days per year may be granted by the head of department.
+- Public holidays and company-wide days off are listed in the holiday calendar of the Knowledge Base.
+
+## 5. Conduct
+All employees follow the code of conduct. Conflicts of interest must be declared. Gifts above EUR 50 must be declined or reported. Concerns can be raised with a manager, with HR or through the anonymous form.
+
+## 6. Performance and growth
+We run an annual review with a mid-year check-in. Self-reviews are due on 5 December and results are shared on 22 December. Ratings use a scale from 1 to 5. Salary changes take effect on 1 February. Employees agree development goals with their manager in January.
+
+## 7. Equipment and IT
+Engineers receive a MacBook Pro 14 inch and other roles a Dell Latitude. Laptops are refreshed after 36 months. Request software through Contoso Self Service or the IT portal. Report a lost device within 1 hour. The IT helpdesk is available in #it-help from 08:00 to 18:00 on weekdays.
+
+## 8. Security and data
+Use multi-factor authentication with Okta Verify, keep passwords in 1Password and use at least 14 characters. Classify documents as Public, Internal, Confidential or Restricted. Report any suspected security incident within 1 hour to security@contoso-mock.onmicrosoft.com.
+
+## 9. Expenses and travel
+Business expenses are reimbursed under the expense policy. Meals on business trips are reimbursed up to EUR 35 per day and hotels up to EUR 140 per night. Receipts must be submitted within 30 days. Claims approved by the 18th are paid with the salary on the 25th.
+
+## 10. Working with customers
+Customer data is Confidential. Never copy customer data into test environments without anonymising it. Do not discuss unreleased features with customers unless a non-disclosure agreement is in place.
+
+## 11. Communication
+Use Slack for quick questions and email for formal communication. Write decisions down in the wiki. Respond to direct messages within one working day. Use channel threads to keep conversations tidy. Mark urgent requests clearly and use the on-call channel only for production issues.
+
+## 12. Health and safety
+Report accidents and unsafe conditions to Reception in the office and to your manager when working remotely. The Lviv office has first aid kits on every floor and trained first aiders listed at Reception. Fire evacuation points are shown on the floor plan.
+
+## 13. Leaving Contoso
+When you leave, hand over your work, return your laptop and badge within 5 business days and attend an exit interview. All access is removed at 18:00 on your last working day. Unused vacation is paid out in the final salary.
+
+## 14. Contact points
+- HR: hr@contoso-mock.onmicrosoft.com
+- IT helpdesk: #it-help or extension 100
+- Security: security@contoso-mock.onmicrosoft.com
+- Legal: legal requests channel #legal-requests
+- Finance: expense and procurement questions to the Finance Director
+
+## 15. How to read this handbook
+Keep this handbook handy during your first weeks and read the linked policies as questions come up. Managers are expected to walk their new colleagues through sections 2 to 4 during the first week, and HR will answer open questions in the first month check-in. Suggestions for the next edition can be sent to HR at any time; the handbook is revised every January.
+
+## 16. Meetings and calendars
+Keep your calendar accurate: mark office days, remote days and vacation. Meetings should have an agenda and an owner, and should end with written decisions and action items. Avoid scheduling meetings outside core hours, from 11:00 to 16:00 Kyiv time, unless all participants agree. Decline meetings that have no purpose. Recurring meetings are reviewed every quarter and cancelled if they are no longer useful. When you organise a meeting across the Lviv and Krakow offices, remember that both offices use Kyiv time for company events, but Krakow public holidays differ.
+
+## 17. One-to-ones and feedback
+Every employee has a weekly or fortnightly one-to-one with their manager, at least 30 minutes long. The employee owns the agenda. Use the one-to-one to discuss priorities, blockers, feedback and growth. Feedback should be specific, timely and kind. Managers give written feedback in the mid-year check-in on 30 June and in the annual review in December. Employees can also ask for feedback from peers at any time through the HR portal.
+
+## 18. Customers and communication outside the company
+Only people authorised by Sales, Support or Legal speak to customers about contracts, prices or incidents. If a customer asks you something outside your area, forward the question to the right team in the support queue. Do not speak to the press on behalf of Contoso. When you represent Contoso at an event, tell your manager in advance. Do not share screenshots of internal tools or customer data on public channels. Use the legal request channel before signing anything on behalf of the company.
+
+## 19. Data protection basics
+Contoso processes personal data of customers and employees. Follow these rules: collect only what you need, store it only in approved systems, never copy it to personal devices, and report any mistake immediately. Employees have the right to ask HR what personal data Contoso holds about them. Requests are answered within 30 days. The data classification guide in the Knowledge Base explains the four classes: Public, Internal, Confidential and Restricted.
+
+## 20. Frequently asked situations
+- You are ill on a Monday morning: message your manager before 10:00 and follow the sick leave policy.
+- You want to take 10 days of vacation in August: request it through the HR portal and agree the dates with your manager at least one month ahead.
+- You lose your laptop on a train: report it within 1 hour to the IT helpdesk and to the security mailbox.
+- A supplier offers you a gift worth EUR 80: decline it or report it to HR, because the limit is EUR 50.
+- You find a document you should not be able to read: close it and report it as a security incident.
+- You are asked to work on a Saturday: agree it with your manager in advance. The time is compensated with time off in the following month.
+
+## 21. Equipment care and return
+Laptops, monitors and badges remain the property of Contoso. Keep devices clean and in the supplied cases when travelling. Do not install software that has not been approved, do not lend your laptop to family members and do not connect unknown USB drives. If a device breaks, report it in #it-help; IT swaps laptops in the Lviv office within one working day when a spare is available. Peripherals such as keyboards and headsets are available from the IT storage room on floor 5 and are signed out with your badge number. When you leave or change roles, return everything within 5 business days of your last working day, and IT will confirm the return in writing.
+
+## 22. Working with colleagues in other offices
+Contoso is spread across two offices and many home offices. Write messages so that they can be understood without a call: state the question, the context, the deadline and what you have already tried. Record important decisions in the wiki or in the Jira ticket so that colleagues in the other office can follow them. Share meeting notes within one working day. Use video for meetings that include remote participants, and make sure that people who are in the room also join the call on their own laptops with the microphone muted, so that everyone has the same view. Be mindful of colleagues who work in different time zones and who may be reachable only during core hours.
+
+## 23. Changes to employment
+Changes of role, level, working hours or place of work are confirmed in writing by HR. A promotion is effective from the first day of the month after approval. A change of team is agreed between both managers and the employee, and access from the old team is removed at the end of the move week. If you move to another country, tell HR at least 2 months in advance so that the legal and tax impact can be checked.
+

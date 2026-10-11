@@ -20,6 +20,27 @@ public static class DirectoryEndpoints
     private const string GroupsContext = "groups";
     private const string ObjectsContext = "directoryObjects";
 
+    private static readonly string[] UserFilterable = ["mail", "userPrincipalName", "displayName", "id"];
+    private static readonly string[] UserSortable = ["displayName", "userPrincipalName"];
+    private static readonly string[] GroupFilterable = ["displayName", "mail", "id"];
+    private static readonly string[] GroupSortable = ["displayName"];
+
+    private static string? UserProperty(UserRecord u, string name) => name switch
+    {
+        "mail" or "userPrincipalName" => u.UserPrincipalName,
+        "displayName" => u.DisplayName,
+        "id" => u.Id,
+        _ => null,
+    };
+
+    // The mock's groups are security groups without a mailbox, so `mail` is null and never matches.
+    private static string? GroupProperty(GroupRecord g, string name) => name switch
+    {
+        "displayName" => g.DisplayName,
+        "id" => g.Id,
+        _ => null,
+    };
+
     public static IEndpointRouteBuilder MapDirectoryEndpoints(this IEndpointRouteBuilder app)
     {
         var v1 = app.MapGroup("/v1.0");
@@ -29,7 +50,9 @@ public static class DirectoryEndpoints
             {
                 Value = [.. items.Select(u => DirectoryMapper.ToUser(u))],
                 OdataNextLink = next,
-            }));
+            },
+            DirectoryQuery.Options,
+            (q, all) => DirectoryQuery.Refine(ctx.Request, q, all, "users", UserFilterable, UserSortable, UserProperty)));
         v1.MapGet("/users/{id}", (string id, HttpContext ctx, GraphStore store, IOptions<MockGraphOptions> o) =>
             Entity(ctx, o.Value, FindUser(store, id), DirectoryMapper.ToUser, $"{UsersContext}/$entity"));
         v1.MapGet("/users/{id}/memberOf", (string id, HttpContext ctx, GraphStore store, IOptions<MockGraphOptions> o) =>
@@ -49,7 +72,9 @@ public static class DirectoryEndpoints
             {
                 Value = [.. items.Select(g => DirectoryMapper.ToGroup(g))],
                 OdataNextLink = next,
-            }));
+            },
+            DirectoryQuery.Options,
+            (q, all) => DirectoryQuery.Refine(ctx.Request, q, all, "groups", GroupFilterable, GroupSortable, GroupProperty)));
         v1.MapGet("/groups/{id}", (string id, HttpContext ctx, GraphStore store, IOptions<MockGraphOptions> o) =>
             Entity(ctx, o.Value, FindGroup(store, id), DirectoryMapper.ToGroup, $"{GroupsContext}/$entity"));
         v1.MapGet("/groups/{id}/members", (string id, HttpContext ctx, GraphStore store, IOptions<MockGraphOptions> o) =>

@@ -7,6 +7,8 @@ public enum ChangeKind
     ItemSharingChanged,
     GroupMemberAdded,
     GroupMemberRemoved,
+    SiteGroupMemberAdded,
+    SiteGroupMemberRemoved,
 }
 
 /// <summary>A change before it gets its sequence number.</summary>

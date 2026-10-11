@@ -6,7 +6,8 @@ public static class GraphErrors
 {
     public const string RequestIdKey = "mockgraph.request-id";
 
-    public static async Task WriteAsync(HttpContext context, int status, string code, string message)
+    public static async Task WriteAsync(
+        HttpContext context, int status, string code, string message, IReadOnlyDictionary<string, object>? innerExtras = null)
     {
         var requestId = context.Items[RequestIdKey] as string ?? Guid.NewGuid().ToString();
         var error = new ODataError
@@ -23,6 +24,11 @@ public static class GraphErrors
                 },
             },
         };
+
+        foreach (var (key, value) in innerExtras ?? new Dictionary<string, object>())
+        {
+            error.Error.InnerError.AdditionalData[key] = value;
+        }
 
         var bytes = GraphJson.Serialize(error);
         context.Response.StatusCode = status;

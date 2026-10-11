@@ -11,6 +11,7 @@ public sealed partial class GraphStore
         {
             var (drive, item) = ResolveItem(m, driveRef, itemId, itemPath);
             var principal = ResolvePrincipal(m, principalText);
+            EnsureSameSite(m, drive, principal);
             var role = ParseRole(roleText ?? throw GraphException.BadRequest("'role' is required (read, write or owner)."));
 
             var existing = item.Grants.FirstOrDefault(g => g.Principal == principal);
@@ -41,6 +42,7 @@ public sealed partial class GraphStore
         {
             var group = m.FindGroup(groupRef) ?? throw GraphException.ResourceNotFound(groupRef);
             var member = ResolvePrincipal(m, memberText);
+            RejectSiteGroupMember(member);
             if (group.Members.Contains(member))
             {
                 return new Mutation(m, [], new AdminOutcome(false, 0));
@@ -74,6 +76,75 @@ public sealed partial class GraphStore
                 [new PendingChange(ChangeKind.GroupMemberRemoved, GroupKey: group.Key, Member: member)],
                 new AdminOutcome(true, 0));
         });
+
+    /// <summary>Adds a user or Entra group to a SharePoint site group. Every item that gives the site group access is reported as a sharing change.</summary>
+    public AdminOutcome AddSiteGroupMember(string siteRef, string groupRef, string? memberText) =>
+        Apply(m =>
+        {
+            var (site, group) = ResolveSiteGroup(m, siteRef, groupRef);
+            var member = ResolvePrincipal(m, memberText);
+            RejectSiteGroupMember(member);
+            if (group.Members.Contains(member))
+            {
+                return new Mutation(m, [], new AdminOutcome(false, 0));
+            }
+
+            return SiteGroupMutation(m, site, group, [.. group.Members, member], ChangeKind.SiteGroupMemberAdded, member);
+        });
+
+    public AdminOutcome RemoveSiteGroupMember(string siteRef, string groupRef, string? memberText) =>
+        Apply(m =>
+        {
+            var (site, group) = ResolveSiteGroup(m, siteRef, groupRef);
+            var member = ResolvePrincipal(m, memberText);
+            return group.Members.Contains(member)
+                ? SiteGroupMutation(m, site, group, [.. group.Members.Where(x => x != member)], ChangeKind.SiteGroupMemberRemoved, member)
+                : throw GraphException.NotFound("Request_ResourceNotFound", $"'{member}' is not a direct member of site group '{group.Key}'.");
+        });
+
+    private Mutation SiteGroupMutation(
+        GraphModel m, SiteRecord site, SiteGroupRecord group, IReadOnlyList<PrincipalRef> members, ChangeKind kind, PrincipalRef member)
+    {
+        var updated = group with { Members = members };
+        var access = new AccessEvaluator(m);
+        var siteDrives = m.Drives.Where(d => d.SiteKey == site.Key).Select(d => d.Key).ToHashSet();
+        var affected = m.Items.Where(i => siteDrives.Contains(i.DriveKey) && access.EffectiveGrants(i).Any(g => g.Grant.Principal == group.Ref));
+        PendingChange[] changes =
+        [
+            new(kind, GroupKey: group.Key, Member: member),
+            .. affected.Select(i => new PendingChange(ChangeKind.ItemSharingChanged, i.DriveKey, i.Id, i.Path)),
+        ];
+        return new Mutation(
+            m.With(siteGroups: [.. m.SiteGroups.Select(g => g.Key == group.Key ? updated : g)]),
+            changes,
+            new AdminOutcome(true, 0));
+    }
+
+    private static (SiteRecord Site, SiteGroupRecord Group) ResolveSiteGroup(GraphModel m, string siteRef, string groupRef)
+    {
+        var site = m.FindSite(siteRef) ?? throw GraphException.NotFound("itemNotFound", $"Site '{siteRef}' not found.");
+        var group = m.SiteGroups.FirstOrDefault(g =>
+                g.SiteKey == site.Key
+                && (string.Equals(g.Key, groupRef, StringComparison.OrdinalIgnoreCase) || g.WireId == groupRef))
+            ?? throw GraphException.NotFound("itemNotFound", $"Site group '{groupRef}' not found on site '{site.Key}'.");
+        return (site, group);
+    }
+
+    private static void RejectSiteGroupMember(PrincipalRef member)
+    {
+        if (member.Kind == PrincipalKind.SiteGroup)
+        {
+            throw GraphException.BadRequest("Members must be users or groups; a site group cannot be a member.");
+        }
+    }
+
+    private static void EnsureSameSite(GraphModel m, DriveRecord drive, PrincipalRef principal)
+    {
+        if (principal.Kind == PrincipalKind.SiteGroup && m.FindSiteGroup(principal.Key)!.SiteKey != drive.SiteKey)
+        {
+            throw GraphException.BadRequest($"Site group '{principal.Key}' belongs to another site than drive '{drive.Key}'.");
+        }
+    }
 
     /// <summary>Adds or replaces a file, creating missing parent folders.</summary>
     public AdminOutcome PutFile(string? driveRef, string? pathText, byte[] content) =>
@@ -240,7 +311,7 @@ public sealed partial class GraphStore
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            throw GraphException.BadRequest("A principal like 'user:alice' or 'group:eng-backend' is required.");
+            throw GraphException.BadRequest("A principal like 'user:alice', 'group:eng-backend' or 'siteGroup:kb-members' is required.");
         }
 
         PrincipalRef parsed;
@@ -251,6 +322,11 @@ public sealed partial class GraphStore
         catch (InvalidDataException ex)
         {
             throw GraphException.BadRequest(ex.Message);
+        }
+
+        if (parsed.Kind == PrincipalKind.SiteGroup)
+        {
+            return m.FindSiteGroup(parsed.Key)?.Ref ?? throw GraphException.NotFound("Request_ResourceNotFound", $"Unknown principal '{text}'.");
         }
 
         DirectoryEntry? entry = parsed.Kind == PrincipalKind.User ? m.FindUser(parsed.Key) : m.FindGroup(parsed.Key);

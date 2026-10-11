@@ -35,10 +35,18 @@ public static class FixtureWriter
             DisplayName = g.DisplayName,
             Members = [.. g.Members.Select(m => m.ToString())],
         })],
-        Sites = [.. model.Sites.Select(s => new SiteDto
+        Sites = [.. model.Sites.Where(s => !s.IsImplicit).Select(s => new SiteDto
         {
             Id = s.Key,
             DisplayName = s.DisplayName,
+            Root = s.IsRoot,
+            Path = s.Path == (s.IsRoot ? "/" : $"/sites/{s.Key}") ? null : s.Path,
+            SiteGroups = [.. model.SiteGroups.Where(g => g.SiteKey == s.Key).Select(g => new SiteGroupDto
+            {
+                Id = g.Key,
+                DisplayName = g.DisplayName,
+                Members = [.. g.Members.Select(m => m.ToString())],
+            })],
             Drives = [.. model.Drives.Where(d => d.SiteKey == s.Key).Select(d => new DriveDto
             {
                 Id = d.Key,

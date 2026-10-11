@@ -50,5 +50,9 @@ Versions are those resolved at the time of writing; regenerate with
 - MIT: the text in `LICENSE` applies to each MIT component with that component's own copyright notice above.
 - Apache-2.0: `LICENSES/Apache-2.0.txt`.
 
+## Fixture content
+
+The documents in `fixtures/` (including the generated `.docx`, `.pdf`, `.xlsx` and `.pptx` files in `fixtures/files/company/`) are original content written for this project under the MIT License. They describe a fictional company and contain no third-party text. The Python libraries used to generate them (`tools/fixture-files/`) are not part of the image.
+
 Packages used only for building and testing (xUnit, Microsoft.NET.Test.Sdk, Microsoft.AspNetCore.Mvc.Testing,
 Xunit.SkippableFact, coverlet) are not distributed with the image.

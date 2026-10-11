@@ -1,0 +1,27 @@
+# Guide to contract templates
+Owner: Legal (Karen Legal). Version 2026-06.
+
+## Templates
+| Template | Use |
+|---|---|
+| Master service agreement (MSA) | Framework for all customers |
+| Order form | Specific plan, users, price and term |
+| Data processing agreement (DPA) | Required whenever we process personal data of the customer |
+| Mutual NDA | Before sharing non-public information |
+| Contractor agreement | Independent contractors |
+
+## Standard positions
+- Payment terms: net 30 days.
+- Liability cap: 12 months of fees paid under the contract.
+- Term: 12 months, renewing automatically for 12 months unless either party gives 60 days' notice.
+- Governing law: Ukrainian law for Ukrainian customers; for other customers the laws of Poland with the courts in Krakow.
+- Service levels: as in the customer SLA summary for the plan.
+
+## Deviations
+Any change to liability, indemnity, governing law, data location or service levels needs written review by the Legal Counsel. Allow 3 business days for review of a redline.
+
+## Signing
+Contracts with a yearly value up to EUR 50,000 may be signed by the Finance Director; higher values are signed by the CEO. Signed contracts are stored in the contract repository by Legal.
+
+## Data processing
+A DPA must be signed before any customer personal data is processed. Sub-processors are listed on the Contoso trust page and customers receive 30 days' notice of changes.

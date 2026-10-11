@@ -1,0 +1,23 @@
+# ADR-0019: Version the public API in the URL path
+Status: Accepted. Date: 20 November 2025. Deciders: Frank Manager, Alice Backend, Bob Frontend.
+
+## Context
+The public API of Contoso Ledger has customers who integrate with it for years. We need a way to introduce breaking changes without forcing every customer to migrate on the same day. The v1 API was published without a clear deprecation process.
+
+## Options considered
+| Option | Pros | Cons |
+|---|---|---|
+| Version in the URL path (/v2/...) | Visible, easy to cache and route | Duplicates routes |
+| Version in a request header | Clean URLs | Hidden, hard to test in a browser |
+| Date-based versions per customer | Fine-grained | Complex to operate |
+
+## Decision
+The major version is part of the URL path. A new major version is only introduced for breaking changes. Non-breaking additions (new optional fields or endpoints) are made within the current version. The api-gateway routes by version prefix.
+
+## Deprecation policy
+- A deprecated endpoint sends a Sunset header at least 6 months before removal.
+- The previous major version is supported for at least 12 months after the new one is released.
+- Version v2 was released on 1 January 2026. Version v1 is supported until 31 December 2026.
+
+## Consequences
+Contract tests run against each supported version. Customers get a migration guide and a compatibility checker tool. The support team prepares a notice for customers still using v1 in September 2026.

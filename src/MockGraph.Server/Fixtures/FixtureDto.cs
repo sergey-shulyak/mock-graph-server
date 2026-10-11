@@ -40,7 +40,24 @@ public sealed class SiteDto
 
     public string DisplayName { get; set; } = "";
 
+    /// <summary>Marks the tenant root site (<c>/sites/root</c>). Without one the loader adds an empty root site.</summary>
+    public bool Root { get; set; }
+
+    /// <summary>Server-relative path override; default is <c>/sites/{id}</c> (or <c>/</c> for the root site).</summary>
+    public string? Path { get; set; }
+
+    public List<SiteGroupDto> SiteGroups { get; set; } = [];
+
     public List<DriveDto> Drives { get; set; } = [];
+}
+
+public sealed class SiteGroupDto
+{
+    public string Id { get; set; } = "";
+
+    public string DisplayName { get; set; } = "";
+
+    public List<string> Members { get; set; } = [];
 }
 
 public sealed class DriveDto

@@ -1,0 +1,39 @@
+# First week plan for new hires
+Owner: HR. Applies to all new employees; engineering teams add technical sessions.
+
+## Monday
+| Time | Activity |
+|---|---|
+| 10:00 | Welcome at Reception, floor 5, with the HR coordinator |
+| 10:30 | Badge, laptop handover and Okta Verify setup with IT |
+| 12:30 | Lunch with your buddy |
+| 14:00 | Team introduction with your manager |
+| 16:00 | Read the employee handbook |
+
+## Tuesday
+| Time | Activity |
+|---|---|
+| 10:00 | Security awareness course, part 1 (45 minutes) |
+| 11:30 | Set up VPN, 1Password and Slack |
+| 14:00 | Access requests for team systems |
+
+## Wednesday
+| Time | Activity |
+|---|---|
+| 10:00 | Security awareness course, part 2 (45 minutes) |
+| 11:30 | Product overview: Contoso Ledger and Contoso Pulse |
+| 15:00 | HR session: policies and how to use the HR portal |
+
+## Thursday
+| Time | Activity |
+|---|---|
+| 11:00 | First one-to-one with your manager |
+| 14:00 | Team ceremony or standup |
+
+## Friday
+| Time | Activity |
+|---|---|
+| 11:00 | Agree your 30-60-90 day plan |
+| 16:00 | Week one feedback with HR |
+
+All new hires must finish the security awareness course by Friday of week one.

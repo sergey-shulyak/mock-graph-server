@@ -75,8 +75,37 @@ public static class DriveEndpoints
             : throw GraphException.ItemNotFound();
     }
 
-    private static IResult GetItem(HttpContext ctx, MockGraphOptions options, Target t) =>
-        Entity(ctx, options, t.Mapper.ToDriveItem(t.Drive, t.Item), $"drives('{t.Drive.Id}')/items/$entity");
+    private static IResult GetItem(HttpContext ctx, MockGraphOptions options, Target t)
+    {
+        var query = ODataQuery.Parse(ctx.Request, collection: false, options, "$expand");
+        var item = t.Mapper.ToDriveItem(t.Drive, t.Item);
+        var expand = query.Extra("$expand");
+        if (expand is not null)
+        {
+            foreach (var name in expand.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (name.Equals("children", StringComparison.OrdinalIgnoreCase))
+                {
+                    // A file has no children relationship: Graph returns the item without a children property.
+                    item.Children = t.Item.IsFolder
+                        ? [.. t.Mapper.Model.ChildrenOf(t.Item).Where(c => t.Mapper.Access.CanRead(t.Mapper.Caller, c)).Select(c => t.Mapper.ToDriveItem(t.Drive, c))]
+                        : null;
+                }
+                else if (name.Equals("permissions", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw GraphException.BadRequest("The permissions relationship of a driveItem can't be expanded; call GET .../items/{id}/permissions instead.");
+                }
+                else
+                {
+                    throw GraphException.BadRequest($"$expand={name} is not supported. Supported: children.");
+                }
+            }
+        }
+
+        item.AdditionalData["@odata.context"] = $"{Paging.BaseUrl(ctx.Request)}/v1.0/$metadata#drives('{t.Drive.Id}')/items/$entity";
+        // An explicit $select still returns the expanded relationship.
+        return new GraphJsonResult(item, expand is null || query.SelectRaw is null ? query : query with { SelectRaw = query.SelectRaw + ",children" });
+    }
 
     private static IResult GetChildren(HttpContext ctx, GraphStore store, MockGraphOptions options, Target t)
     {
