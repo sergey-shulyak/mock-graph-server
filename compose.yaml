@@ -1,0 +1,15 @@
+# Paste this under `services:` in your own compose file, or use it as-is.
+# The image has no healthcheck: the aspnet base image ships without curl or wget.
+services:
+  mock-graph:
+    # OWNER is a placeholder: replace it with the GitHub owner that publishes the image.
+    image: ghcr.io/OWNER/mock-graph-server:latest
+    ports:
+      - "8080:8080"
+    # Optional: use your own fixture instead of the built-in sample.
+    # Mount a host folder at a path that does not hide the built-in fixtures, then point the server at it.
+    # environment:
+    #   MOCKGRAPH__FIXTUREPATH: /app/my-fixtures/team.yaml
+    #   MOCKGRAPH__DEFAULTPAGESIZE: "5"
+    # volumes:
+    #   - ./my-fixtures:/app/my-fixtures:ro

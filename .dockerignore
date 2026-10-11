@@ -1,0 +1,24 @@
+# Build output and IDE state
+**/bin
+**/obj
+**/.vs
+**/.idea
+**/TestResults
+
+# Source control, CI and tooling that the image does not need
+.git
+.github
+.gitignore
+.mise.toml
+mise.toml
+.DS_Store
+
+# Tests and docs are not part of the image
+tests
+docs
+
+# Image and compose files themselves
+Dockerfile
+.dockerignore
+compose.yaml
+MockGraph.sln

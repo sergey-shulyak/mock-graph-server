@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore MockGraph.sln
+
+      - name: Build
+        run: dotnet build MockGraph.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test MockGraph.sln -c Release --no-build
+
+      - name: Format check
+        run: dotnet format MockGraph.sln --verify-no-changes --no-restore
