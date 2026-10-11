@@ -77,12 +77,12 @@ All paths are under `/v1.0`. Every `GET` below is supported. Nothing else under 
 
 ## Running it
 
-The image is published to GitHub Container Registry as `ghcr.io/OWNER/mock-graph-server` (replace `OWNER` with the publishing GitHub account). Tags: `latest` (default branch), `vX.Y.Z`, `vX.Y` (version tags) and `sha-<commit>`. Platforms: `linux/amd64` and `linux/arm64`.
+The image is published to GitHub Container Registry as `ghcr.io/sergey-shulyak/mock-graph-server`. Tags: `latest` (default branch), `vX.Y.Z`, `vX.Y` (version tags) and `sha-<commit>`. Platforms: `linux/amd64` and `linux/arm64`.
 
 **Docker**
 
 ```bash
-docker run --rm -p 8080:8080 ghcr.io/OWNER/mock-graph-server:latest
+docker run --rm -p 8080:8080 ghcr.io/sergey-shulyak/mock-graph-server:latest
 
 curl -H "Authorization: Bearer app" http://localhost:8080/v1.0/users
 ```
@@ -108,7 +108,7 @@ With `dotnet run` the server listens on `http://localhost:5066` (from `Propertie
 docker run --rm -p 8080:8080 \
   -e MOCKGRAPH__FIXTUREPATH=/app/my-fixtures/team.yaml \
   -v "$PWD/my-fixtures:/app/my-fixtures:ro" \
-  ghcr.io/OWNER/mock-graph-server:latest
+  ghcr.io/sergey-shulyak/mock-graph-server:latest
 ```
 
 If the fixture is missing or invalid (unknown principal, duplicate id, bad role, missing source file), the server fails at startup and prints the reason.
