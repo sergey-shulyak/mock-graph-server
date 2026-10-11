@@ -10,6 +10,8 @@ using MockGraph.Server.Options;
 using MockGraph.Server.Serialization;
 using MockGraph.Server.State;
 
+using static MockGraph.Server.Endpoints.GraphResults;
+
 namespace MockGraph.Server.Endpoints;
 
 public static class DirectoryEndpoints
@@ -83,30 +85,4 @@ public static class DirectoryEndpoints
 
     private static IResult Objects(HttpContext ctx, GraphStore store, MockGraphOptions options, IReadOnlyList<GroupRecord> groups) =>
         Objects(ctx, store, options, [.. groups.Cast<DirectoryEntry>()]);
-
-    private static IResult Collection<TEntry, TResponse>(
-        HttpContext ctx,
-        GraphStore store,
-        MockGraphOptions options,
-        IReadOnlyList<TEntry> all,
-        string context,
-        Func<List<TEntry>, string?, TResponse> build)
-        where TResponse : IParsable, IAdditionalDataHolder
-    {
-        var query = ODataQuery.Parse(ctx.Request, collection: true, options);
-        var (items, next) = Paging.Page(all, query, ctx.Request, options, store.Epoch);
-        var body = build(items, next);
-        body.AdditionalData["@odata.context"] = $"{Paging.BaseUrl(ctx.Request)}/v1.0/$metadata#{context}";
-        return new GraphJsonResult(body, query);
-    }
-
-    private static IResult Entity<TRecord, TModel>(
-        HttpContext ctx, MockGraphOptions options, TRecord record, Func<TRecord, bool, TModel> map, string context)
-        where TModel : IParsable, IAdditionalDataHolder
-    {
-        var query = ODataQuery.Parse(ctx.Request, collection: false, options);
-        var body = map(record, false);
-        body.AdditionalData["@odata.context"] = $"{Paging.BaseUrl(ctx.Request)}/v1.0/$metadata#{context}";
-        return new GraphJsonResult(body, query);
-    }
 }

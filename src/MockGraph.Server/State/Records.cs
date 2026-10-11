@@ -59,7 +59,14 @@ public sealed record ItemRecord(
     bool BreakInheritance,
     IReadOnlyList<GrantRecord> Grants,
     byte[]? Content,
-    string? ContentType);
+    string? ContentType)
+{
+    /// <summary>Last modification time; seeded items use <see cref="ItemPaths.SeedTime"/>. Admin mutations (M3) set it via `with`.</summary>
+    public DateTimeOffset Modified { get; init; } = ItemPaths.SeedTime;
+
+    /// <summary>Bumped on every content or permission change; feeds eTag/cTag.</summary>
+    public int Version { get; init; } = 1;
+}
 
 public sealed class GraphModel(
     string tenantDomain,
@@ -80,6 +87,51 @@ public sealed class GraphModel(
     public IReadOnlyList<DriveRecord> Drives { get; } = drives;
 
     public IReadOnlyList<ItemRecord> Items { get; } = items;
+
+    public DriveRecord? FindDrive(string idOrKey) => Drives.FirstOrDefault(d =>
+        string.Equals(d.Id, idOrKey, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(d.Key, idOrKey, StringComparison.OrdinalIgnoreCase));
+
+    public SiteRecord? FindSite(string idOrKey) => Sites.FirstOrDefault(s =>
+        string.Equals(s.Id, idOrKey, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(s.Key, idOrKey, StringComparison.OrdinalIgnoreCase));
+
+    public SiteRecord SiteOf(DriveRecord drive) => Sites.First(s => s.Key == drive.SiteKey);
+
+    public DriveRecord DriveOf(ItemRecord item) => Drives.First(d => d.Key == item.DriveKey);
+
+    /// <summary>The drive root is virtual: it has no fixture entry, no grants and always inherits nothing.</summary>
+    public ItemRecord RootOf(DriveRecord drive) =>
+        new(drive.Key, Ids.Item(drive.Id, "/"), "/", "root", true, false, [], null, null);
+
+    /// <summary>Finds an item by wire id (or the literal "root").</summary>
+    public ItemRecord? FindItem(DriveRecord drive, string id)
+    {
+        var root = RootOf(drive);
+        return id.Equals("root", StringComparison.OrdinalIgnoreCase) || id.Equals(root.Id, StringComparison.OrdinalIgnoreCase)
+            ? root
+            : Items.FirstOrDefault(i => i.DriveKey == drive.Key && string.Equals(i.Id, id, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public ItemRecord? FindItemByPath(DriveRecord drive, string path)
+    {
+        var normalized = "/" + path.Trim('/');
+        return normalized == "/"
+            ? RootOf(drive)
+            : Items.FirstOrDefault(i => i.DriveKey == drive.Key && string.Equals(i.Path, normalized, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public ItemRecord? ParentOf(ItemRecord item) =>
+        item.Path == "/" ? null : FindItemByPath(DriveOf(item), ItemPaths.ParentOf(item.Path));
+
+    public IReadOnlyList<ItemRecord> ChildrenOf(ItemRecord folder) =>
+        [.. Items.Where(i => i.DriveKey == folder.DriveKey && string.Equals(ItemPaths.ParentOf(i.Path), folder.Path, StringComparison.OrdinalIgnoreCase))];
+
+    public IEnumerable<ItemRecord> DescendantsOf(ItemRecord folder)
+    {
+        var prefix = folder.Path == "/" ? "/" : folder.Path + "/";
+        return Items.Where(i => i.DriveKey == folder.DriveKey && i.Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+    }
 
     public DirectoryEntry? Resolve(PrincipalRef principal) => principal.Kind == PrincipalKind.User
         ? Users.FirstOrDefault(u => u.Key == principal.Key)

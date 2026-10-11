@@ -133,7 +133,7 @@ public static class FixtureLoader
 
         foreach (var path in byPath.Keys.ToList())
         {
-            for (var parent = ParentOf(path); parent != "/"; parent = ParentOf(parent))
+            for (var parent = ItemPaths.ParentOf(path); parent != "/"; parent = ItemPaths.ParentOf(parent))
             {
                 if (!byPath.ContainsKey(parent))
                 {
@@ -173,12 +173,6 @@ public static class FixtureLoader
     {
         var trimmed = path.Trim().Trim('/');
         return trimmed.Length == 0 ? throw new InvalidDataException("Item path must not be empty.") : "/" + trimmed;
-    }
-
-    private static string ParentOf(string path)
-    {
-        var index = path.LastIndexOf('/');
-        return index <= 0 ? "/" : path[..index];
     }
 
     private static PermissionRole ParseRole(string role) => role.ToLowerInvariant() switch

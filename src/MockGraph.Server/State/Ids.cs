@@ -13,9 +13,11 @@ public static class Ids
 
     public static string Group(string key) => Uuid5($"group:{key}").ToString();
 
+    public static string TenantHost(string tenantDomain) => tenantDomain.Split('.')[0] + ".sharepoint.com";
+
     public static string Site(string tenantDomain, string key)
     {
-        var host = tenantDomain.Split('.')[0] + ".sharepoint.com";
+        var host = TenantHost(tenantDomain);
         return $"{host},{Uuid5($"site:{key}")},{Uuid5($"web:{key}")}";
     }
 

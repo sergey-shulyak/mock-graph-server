@@ -14,6 +14,8 @@ _ = app.Services.GetRequiredService<GraphStore>();
 app.UseMiddleware<GraphErrorMiddleware>();
 app.UseMiddleware<AuthMiddleware>();
 app.MapDirectoryEndpoints();
+app.MapSitesEndpoints();
+app.MapDriveEndpoints();
 
 app.Run();
 

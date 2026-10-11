@@ -10,6 +10,11 @@ public sealed class GraphException(int statusCode, string code, string message) 
 
     public static GraphException Unauthorized(string message) => new(StatusCodes.Status401Unauthorized, "InvalidAuthenticationToken", message);
 
+    public static GraphException ItemNotFound() => new(
+        StatusCodes.Status404NotFound,
+        "itemNotFound",
+        "The resource could not be found.");
+
     public static GraphException ResourceNotFound(string id) => new(
         StatusCodes.Status404NotFound,
         "Request_ResourceNotFound",

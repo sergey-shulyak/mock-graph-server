@@ -120,6 +120,23 @@ Principals/members are `user:<id>` / `group:<id>`. Group-membership cycles are r
   non-GET -> 405 `BadRequest`. `/me/memberOf` and `/me/transitiveMemberOf` are also served.
 - Domain records (`State/Records.cs`) already hold sites, drives and items; no endpoints use them yet.
 
+## Implementation notes (M2)
+
+- `GraphModel` gained lookups (`FindDrive/FindSite/FindItem/FindItemByPath/ParentOf/ChildrenOf/DescendantsOf`) and a
+  virtual root (`RootOf`, path `/`, id from `Ids.Item(driveId, "/")`, never stored in `Items`). `ItemRecord` gained
+  `Modified` and `Version` (init props, for eTag/cTag; M3 bumps them with `with`).
+- `AccessEvaluator` is per-request over one model snapshot; `FileMapper.For(ctx, store)` bundles snapshot, caller,
+  evaluator and base URL. Collection/Entity helpers moved to `Endpoints/GraphResults`.
+- `file.hashes` carries `sha1Hash` and `sha256Hash` only; `quickXorHash` (what SharePoint returns) is not computed.
+  Do not rely on it until it is added and verified against known vectors.
+- Folder `size` = sum of readable descendants' bytes; `childCount` counts readable children only.
+- Path addressing `root:/a/b:`, `root:/a/b:/content|children|permissions` is supported; `/items/{id}:/path:` is not.
+- Children/content on the wrong item kind (children of a file, content of a folder) -> 404 `itemNotFound`.
+- Permission ids are hashed from the *source* item (where the grant lives), so an inherited permission keeps
+  the id it has on the ancestor. `grantedToV2` identities carry `email` in AdditionalData (UPN for users,
+  `{groupKey}@{tenantDomain}` for groups).
+- Fixture: added `/General/floor-plan.png` (`source:` binary under `fixtures/files/`); visibility table unchanged.
+
 ## Fixture note
 
 `fixtures/sample.yaml` had `/Engineering/Backend` inheriting `group:engineering` from `/Engineering`,
